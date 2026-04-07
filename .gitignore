@@ -1,0 +1,13 @@
+# Backend
+backend/.env
+backend/node_modules/
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Geral
+*.log
