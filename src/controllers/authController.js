@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const prisma = require('@prisma/client');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 exports.register = async (req, res) => {
   try {
@@ -26,11 +27,16 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return res.status(404).json({ success: false, data: {}, message: 'Usuário não encontrado.' });
+    }
+
+    // Verifica se o nome confere
+    if (name && user.name.toLowerCase() !== name.toLowerCase()) {
+      return res.status(401).json({ success: false, data: {}, message: 'E-mail não foi encontrado.' });
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
@@ -46,6 +52,7 @@ exports.login = async (req, res) => {
 
     res.status(200).json({ success: true, data: { user, token }, message: 'Login realizado com sucesso.' });
   } catch (error) {
+    console.log('ERRO LOGIN:', error);
     res.status(500).json({ success: false, data: {}, message: 'Erro interno do servidor.' });
   }
 };
