@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const libraryController = require('../controllers/libraryController');
-const authMiddleware = require('../middlewares/authMiddleware');
-const subscriptionMiddleware = require('../middlewares/subscriptionMiddleware');
+import express from 'express'
+import libraryController from '../controllers/libraryController.js'
+import authMiddleware from '../middlewares/authMiddleware.js'
+import subscriptionMiddleware from '../middlewares/subscriptionMiddleware.js'
 
-router.get('/', authMiddleware, subscriptionMiddleware, libraryController.getLibrary);
+const router = express.Router()
 
-module.exports = router;
+router.get('/', authMiddleware, subscriptionMiddleware, libraryController.getLibrary)
+
+export default router

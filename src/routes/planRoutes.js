@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const planController = require('../controllers/planController');
-const authMiddleware = require('../middlewares/authMiddleware');
+import express from 'express'
+import planController from '../controllers/planController.js'
+import authMiddleware from '../middlewares/authMiddleware.js'
 
-router.get('/', planController.getPlans);
-router.post('/subscribe', authMiddleware, planController.subscribe);
+const router = express.Router()
 
-module.exports = router;
+router.get('/', planController.getPlans)
+router.post('/subscribe', authMiddleware, planController.subscribe)
+
+export default router
