@@ -8,9 +8,21 @@ const register = async (req, res) => {
   try {
     const { name, email, password } = req.body
 
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        data: {},
+        message: 'Nome, e-mail e senha são obrigatórios.'
+      })
+    }
+
     const userExists = await prisma.user.findUnique({ where: { email } })
     if (userExists) {
-      return res.status(400).json({ success: false, data: {}, message: 'E-mail já cadastrado.' })
+      return res.status(400).json({
+        success: false,
+        data: {},
+        message: 'E-mail já cadastrado.'
+      })
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -20,28 +32,49 @@ const register = async (req, res) => {
 
     user.password = undefined
 
-    res.status(201).json({ success: true, data: { user }, message: 'Usuário registrado com sucesso.' })
+    res.status(201).json({
+      success: true,
+      data: { user },
+      message: 'Usuário registrado com sucesso.'
+    })
   } catch (error) {
-    res.status(500).json({ success: false, data: {}, message: 'Erro interno do servidor.' })
+    console.log('ERRO REGISTER:', error)
+    res.status(500).json({
+      success: false,
+      data: {},
+      message: 'Erro interno do servidor.'
+    })
   }
 }
 
 const login = async (req, res) => {
   try {
-    const { email, password, name } = req.body
+    const { email, password } = req.body
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        data: {},
+        message: 'E-mail e senha são obrigatórios.'
+      })
+    }
 
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user) {
-      return res.status(404).json({ success: false, data: {}, message: 'Usuário não encontrado.' })
-    }
-
-    if (name && user.name.toLowerCase() !== name.toLowerCase()) {
-      return res.status(401).json({ success: false, data: {}, message: 'E-mail não foi encontrado.' })
+      return res.status(404).json({
+        success: false,
+        data: {},
+        message: 'Usuário não encontrado.'
+      })
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password)
     if (!isValidPassword) {
-      return res.status(401).json({ success: false, data: {}, message: 'Senha inválida.' })
+      return res.status(401).json({
+        success: false,
+        data: {},
+        message: 'Senha inválida.'
+      })
     }
 
     const token = jwt.sign(
@@ -59,11 +92,12 @@ const login = async (req, res) => {
     })
   } catch (error) {
     console.log('ERRO LOGIN:', error)
-    res.status(500).json({ success: false, data: {}, message: 'Erro interno do servidor.' })
+    res.status(500).json({
+      success: false,
+      data: {},
+      message: 'Erro interno do servidor.'
+    })
   }
 }
 
-export default {
-  register,
-  login
-}
+export default { register, login }
