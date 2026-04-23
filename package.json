@@ -21,5 +21,16 @@
     "prisma": "^6.19.3",
     "seed": "node prisma/seed.js"
   },
-  "type": "module"
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/archv-rooms/archv-rooms-service.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/archv-rooms/archv-rooms-service/issues"
+  },
+  "homepage": "https://github.com/archv-rooms/archv-rooms-service#readme"
 }

@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
-import cors from 'cors'
+
+import corsMiddleware from './middlewares/cors.js'
 
 import authRoutes from './routes/authRoutes.js'
 import planRoutes from './routes/planRoutes.js'
@@ -10,7 +11,8 @@ import userRoutes from './routes/userRoutes.js'
 const app = express()
 const PORT = process.env.PORT || 3000
 
-app.use(cors())
+app.use(corsMiddleware)
+
 app.use(express.json())
 
 app.use('/auth', authRoutes)
@@ -18,7 +20,7 @@ app.use('/plans', planRoutes)
 app.use('/library', libraryRoutes)
 app.use('/user', userRoutes)
 
-app.get('/', (req, res) => {
+app.get('/', (req, res) => { //colocar link api aq 
   res.status(200).json({
     success: true,
     data: {},
