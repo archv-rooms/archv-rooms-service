@@ -22,10 +22,10 @@ app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
     data: {},
-    message: "Projeto X OS API Online. Accessing Repository..."
+    message: "Archv.rooms OS API Online!"
   })
 })
 
 app.listen(PORT, () => {
-  console.log(`[Projeto X] Servidor rodando na porta ${PORT}`)
+  console.log(`Seja bem-vindo ao [Archv.rooms] Servidor rodando na porta ${PORT}!`)
 })
