@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes.js'
 import planRoutes from './routes/planRoutes.js'
 import libraryRoutes from './routes/libraryRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import checkoutRoutes from './routes/checkoutRoutes.js'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -19,6 +20,7 @@ app.use('/auth', authRoutes)
 app.use('/plans', planRoutes)
 app.use('/library', libraryRoutes)
 app.use('/user', userRoutes)
+app.use('/checkout', checkoutRoutes)
 
 app.get('/', (req, res) => { //colocar link api aq 
   res.status(200).json({
