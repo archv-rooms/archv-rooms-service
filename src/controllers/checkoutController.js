@@ -5,7 +5,16 @@ const prisma = new PrismaClient()
 const checkout = async (req, res) => {
   try {
     const userId = req.userId
-    const { planId } = req.body
+    const { planId: planIdRaw } = req.body
+    const planId = parseInt(planIdRaw)
+
+    if (isNaN(planId)) {
+      return res.status(400).json({
+        success: false,
+        data: {},
+        message: 'O ID do plano deve ser um número inteiro, não string.'
+      })
+    }
 
     if (!planId) {
       return res.status(400).json({
@@ -54,17 +63,6 @@ const checkout = async (req, res) => {
       message: 'Erro interno do servidor.'
     })
   }
-} 
-
-const { planId: planIdRaw } = req.body
-const planId = parseInt(planIdRaw)
-
-if (isNaN(planId)) {
-  return res.status(400).json({
-    success: false,
-    data: {},
-    message: 'O ID do plano deve ser um número inteiro, não string.'
-  })
 }
 
 export default { checkout }
