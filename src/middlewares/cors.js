@@ -1,8 +1,9 @@
 import cors from 'cors'
 
-const allowedOrigins = [ // caso queira testa uma porta colocar o link abaixo 
-  'http://localhost:3000', // dev/back link
-  'https://COLOCAR-AQ-FRONTEND.VERSEL.APP' // front link
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:4200', 
+  'https://COLOCAR-AQ-FRONTEND.VERSEL.APP'
 ]
 
 const corsMiddleware = cors({
