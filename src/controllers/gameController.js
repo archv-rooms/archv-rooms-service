@@ -8,7 +8,7 @@ const getGames = async (req, res) => {
     res.status(200).json({ success: true, data: games, message: 'Jogos carregados.' })
   } catch (error) {
     console.error(error)
-    res.status(500).json({ success: false, data: {}, message: 'Erro ao carregar jogos.' })
+    res.status(500).json({ success: false, data: {}, message: error.message })
   }
 }
 
