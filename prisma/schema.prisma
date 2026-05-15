@@ -37,11 +37,18 @@ model Subscription {
 }
 
 model Game {
-  id          Int    @id @default(autoincrement())
-  title       String
-  console     String
-  image       String
-  accessLevel Int
-  planId      Int?
-  plan        Plan?  @relation(fields: [planId], references: [id])
+  id           Int     @id @default(autoincrement())
+  title        String
+  platform     String
+  year         Int
+  developer    String
+  downloadLink String
+  coverUrl     String
+  description  String
+  sizeMb       Int
+  downloads    Int     @default(0)
+  status       String  @default("active")
+  accessLevel  Int     @default(0)
+  planId       Int?
+  plan         Plan?   @relation(fields: [planId], references: [id])
 }
