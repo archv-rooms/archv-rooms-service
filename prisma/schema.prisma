@@ -3,8 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String
+  games GameCategory[]
+}
+
+model GameCategory {
+  gameId     Int
+  categoryId Int
+  game       Game     @relation(fields: [gameId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@id([gameId, categoryId])
 }
 
 model User {
@@ -12,6 +27,7 @@ model User {
   name          String
   email         String         @unique
   password      String
+  role          String         @default("user") 
   createdAt     DateTime       @default(now())
   subscriptions Subscription[]
 }
@@ -44,4 +60,5 @@ model Game {
   accessLevel Int
   planId      Int?
   plan        Plan?  @relation(fields: [planId], references: [id])
+  categories  GameCategory[] 
 }

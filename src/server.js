@@ -3,6 +3,7 @@ import express from 'express'
 
 import corsMiddleware from './middlewares/cors.js'
 
+import adminRoutes from './routes/adminRoutes.js'
 import gameRoutes from './routes/gameRoutes.js'
 import authRoutes from './routes/authRoutes.js'
 import planRoutes from './routes/planRoutes.js'
@@ -17,6 +18,7 @@ app.use(corsMiddleware)
 
 app.use(express.json())
 
+app.use('/admin', adminRoutes)
 app.use('/api/games', gameRoutes)        
 app.use('/auth', authRoutes)
 app.use('/plans', planRoutes)
