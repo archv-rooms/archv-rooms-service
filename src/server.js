@@ -3,6 +3,8 @@ import express from 'express'
 
 import corsMiddleware from './middlewares/cors.js'
 
+import { setupSwagger } from './swagger.js'
+
 import adminRoutes from './routes/adminRoutes.js'
 import gameRoutes from './routes/gameRoutes.js'
 import authRoutes from './routes/authRoutes.js'
@@ -17,6 +19,8 @@ const PORT = process.env.PORT || 3000
 app.use(corsMiddleware)
 
 app.use(express.json())
+
+setupSwagger(app)
 
 app.use('/admin', adminRoutes)
 app.use('/api/games', gameRoutes)        
