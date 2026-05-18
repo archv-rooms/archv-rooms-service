@@ -284,4 +284,12 @@ router.post('/categories/:id/games', adminMiddleware, adminController.addGameToC
  */
 router.delete('/categories/:id/games/:gameId', adminMiddleware, adminController.removeGameFromCategory)
 
+router.delete('/plans/:id', adminMiddleware, adminController.deletePlan)
+router.patch('/sales/:id/cancel', adminMiddleware, adminController.cancelSale)
+
+router.get('/games', adminMiddleware, adminController.getGames)
+router.post('/games', adminMiddleware, adminController.createGame)
+router.put('/games/:id', adminMiddleware, adminController.updateGame)
+router.delete('/games/:id', adminMiddleware, adminController.deleteGame)
+
 export default router

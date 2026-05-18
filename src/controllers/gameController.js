@@ -12,6 +12,23 @@ const getGames = async (req, res) => {
   }
 }
 
+const getGameById = async (req, res) => {
+  try {
+    const game = await prisma.game.findUnique({
+      where: { id: Number(req.params.id) }
+    })
+
+    if (!game) {
+      return res.status(404).json({ success: false, data: {}, message: 'Jogo não encontrado.' })
+    }
+
+    res.status(200).json({ success: true, data: game, message: 'Jogo carregado.' })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, data: {}, message: error.message })
+  }
+}
+
 const createGame = async (req, res) => {
   try {
     const { title, platform, coverUrl, accessLevel, planId } = req.body
@@ -63,4 +80,4 @@ const deleteGame = async (req, res) => {
   }
 }
 
-export default { getGames, createGame, updateGame, deleteGame }
+export default { getGames, getGameById, createGame, updateGame, deleteGame }

@@ -4,7 +4,6 @@ const prisma = new PrismaClient()
 
 const adminController = {
 
-  // Listar todos os usuários
   async getUsers(req, res) {
     const users = await prisma.user.findMany({
       select: { id: true, name: true, email: true, role: true, createdAt: true }
@@ -12,7 +11,6 @@ const adminController = {
     res.json({ success: true, data: users })
   },
 
-  // Alterar role do usuário (admin/user)
   async setUserRole(req, res) {
     const { role } = req.body
     if (!['admin', 'user'].includes(role)) {
@@ -25,13 +23,20 @@ const adminController = {
     res.json({ success: true, data: user })
   },
 
-  // Listar planos
+  async setUserStatus(req, res) {
+    const { role } = req.body
+    const user = await prisma.user.update({
+      where: { id: Number(req.params.id) },
+      data: { role }
+    })
+    res.json({ success: true, data: user })
+  },
+
   async getPlans(req, res) {
     const plans = await prisma.plan.findMany()
     res.json({ success: true, data: plans })
   },
 
-  // Editar plano (nome, preço)
   async updatePlan(req, res) {
     const { name, price, description } = req.body
     const plan = await prisma.plan.update({
@@ -41,7 +46,24 @@ const adminController = {
     res.json({ success: true, data: plan })
   },
 
-  // Listar vendas (subscriptions)
+  async deletePlan(req, res) {
+    const id = Number(req.params.id)
+
+    const activeSubscriptions = await prisma.subscription.count({
+      where: { planId: id, status: 'active' }
+    })
+
+    if (activeSubscriptions > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Plano possui ${activeSubscriptions} assinatura(s) ativa(s). Cancele-as antes de deletar.`
+      })
+    }
+
+    await prisma.plan.delete({ where: { id } })
+    res.json({ success: true, message: 'Plano deletado com sucesso.' })
+  },
+
   async getSales(req, res) {
     const sales = await prisma.subscription.findMany({
       include: {
@@ -53,17 +75,25 @@ const adminController = {
     res.json({ success: true, data: sales })
   },
 
-  // Ativar/desativar usuário (via role ou campo extra)
-  async setUserStatus(req, res) {
-    const { role } = req.body
-    const user = await prisma.user.update({
-      where: { id: Number(req.params.id) },
-      data: { role }
+  async cancelSale(req, res) {
+    const id = Number(req.params.id)
+
+    const subscription = await prisma.subscription.findUnique({ where: { id } })
+    if (!subscription) {
+      return res.status(404).json({ success: false, message: 'Assinatura não encontrada.' })
+    }
+
+    if (subscription.status === 'cancelled') {
+      return res.status(400).json({ success: false, message: 'Assinatura já está cancelada.' })
+    }
+
+    const updated = await prisma.subscription.update({
+      where: { id },
+      data: { status: 'cancelled' }
     })
-    res.json({ success: true, data: user })
+    res.json({ success: true, data: updated, message: 'Assinatura cancelada com sucesso.' })
   },
 
-  // Listar categorias
   async getCategories(req, res) {
     const categories = await prisma.category.findMany({
       include: { games: { include: { game: true } } }
@@ -71,7 +101,6 @@ const adminController = {
     res.json({ success: true, data: categories })
   },
 
-  // Criar categoria
   async createCategory(req, res) {
     const { name } = req.body
     if (!name) return res.status(400).json({ success: false, message: 'Nome obrigatório.' })
@@ -79,7 +108,6 @@ const adminController = {
     res.status(201).json({ success: true, data: category })
   },
 
-  // Editar categoria
   async updateCategory(req, res) {
     const { name } = req.body
     const category = await prisma.category.update({
@@ -89,13 +117,11 @@ const adminController = {
     res.json({ success: true, data: category })
   },
 
-  // Deletar categoria
   async deleteCategory(req, res) {
     await prisma.category.delete({ where: { id: Number(req.params.id) } })
     res.json({ success: true })
   },
 
-  // Associar jogo a categoria
   async addGameToCategory(req, res) {
     const { gameId } = req.body
     const relation = await prisma.gameCategory.create({
@@ -107,7 +133,6 @@ const adminController = {
     res.status(201).json({ success: true, data: relation })
   },
 
-  // Remover jogo de categoria
   async removeGameFromCategory(req, res) {
     await prisma.gameCategory.delete({
       where: {
@@ -117,6 +142,45 @@ const adminController = {
         }
       }
     })
+    res.json({ success: true })
+  },
+
+  async getGames(req, res) {
+    const games = await prisma.game.findMany({ orderBy: { id: 'asc' } })
+    res.json({ success: true, data: games })
+  },
+
+  async createGame(req, res) {
+    const { title, platform, coverUrl, accessLevel, planId } = req.body
+    const game = await prisma.game.create({
+      data: {
+        title,
+        console: platform,
+        image: coverUrl,
+        accessLevel: accessLevel ?? 0,
+        planId: planId ?? null
+      }
+    })
+    res.status(201).json({ success: true, data: game })
+  },
+
+  async updateGame(req, res) {
+    const { title, platform, coverUrl, accessLevel, planId } = req.body
+    const game = await prisma.game.update({
+      where: { id: Number(req.params.id) },
+      data: {
+        title,
+        console: platform,
+        image: coverUrl,
+        accessLevel: accessLevel ?? 0,
+        planId: planId ?? null
+      }
+    })
+    res.json({ success: true, data: game })
+  },
+
+  async deleteGame(req, res) {
+    await prisma.game.delete({ where: { id: Number(req.params.id) } })
     res.json({ success: true })
   }
 

@@ -48,6 +48,24 @@ router.post('/', gameController.createGame)
 /**
  * @swagger
  * /api/games/{id}:
+ *   get:
+ *     summary: Buscar jogo por ID
+ *     tags: [Games]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Jogo encontrado
+ */
+router.get('/:id', gameController.getGameById)
+
+/**
+ * @swagger
+ * /api/games/{id}:
  *   put:
  *     summary: Atualizar jogo
  *     tags: [Games]
