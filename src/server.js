@@ -1,8 +1,9 @@
 import 'dotenv/config'
 import express from 'express'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
 
 import corsMiddleware from './middlewares/cors.js'
-
 import { setupSwagger } from './swagger.js'
 
 import adminRoutes from './routes/adminRoutes.js'
@@ -13,24 +14,27 @@ import libraryRoutes from './routes/libraryRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import checkoutRoutes from './routes/checkoutRoutes.js'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 const app = express()
 const PORT = process.env.PORT || 3000
 
 app.use(corsMiddleware)
-
 app.use(express.json())
+app.use('/uploads', express.static(join(__dirname, '../uploads')))
 
 setupSwagger(app)
 
 app.use('/admin', adminRoutes)
-app.use('/api/games', gameRoutes)        
+app.use('/api/games', gameRoutes)
 app.use('/auth', authRoutes)
 app.use('/plans', planRoutes)
 app.use('/library', libraryRoutes)
 app.use('/user', userRoutes)
 app.use('/checkout', checkoutRoutes)
 
-app.get('/', (req, res) => { //colocar link api aq 
+app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
     data: {},

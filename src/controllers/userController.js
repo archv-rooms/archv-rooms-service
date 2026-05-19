@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import path from 'path'
 
 const prisma = new PrismaClient()
 
@@ -12,6 +13,7 @@ const getProfile = async (req, res) => {
         id: true,
         name: true,
         email: true,
+        avatar: true,
         createdAt: true,
         subscriptions: {
           where: { status: 'ACTIVE' },
@@ -34,6 +36,49 @@ const getProfile = async (req, res) => {
   }
 }
 
-export default {
-  getProfile
+const updateAvatarUrl = async (req, res) => {
+  try {
+    const { avatarUrl } = req.body
+    if (!avatarUrl) {
+      return res.status(400).json({ success: false, data: {}, message: 'URL do avatar é obrigatória.' })
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.userId },
+      data: { avatar: avatarUrl }
+    })
+
+    res.status(200).json({
+      success: true,
+      data: { avatar: user.avatar },
+      message: 'Avatar atualizado com sucesso.'
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao atualizar avatar.' })
+  }
 }
+
+const updateAvatarFile = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, data: {}, message: 'Nenhum arquivo enviado.' })
+    }
+
+    const avatarUrl = `/uploads/${req.file.filename}`
+
+    const user = await prisma.user.update({
+      where: { id: req.userId },
+      data: { avatar: avatarUrl }
+    })
+
+    res.status(200).json({
+      success: true,
+      data: { avatar: user.avatar },
+      message: 'Avatar atualizado com sucesso.'
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao atualizar avatar.' })
+  }
+}
+
+export default { getProfile, updateAvatarUrl, updateAvatarFile }

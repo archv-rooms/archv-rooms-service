@@ -1,23 +1,24 @@
 import express from 'express'
+import multer from 'multer'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import userController from '../controllers/userController.js'
 import authMiddleware from '../middlewares/authMiddleware.js'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '../../uploads'),
+  filename: (req, file, cb) => {
+    cb(null, `${req.userId}-${Date.now()}${path.extname(file.originalname)}`)
+  }
+})
+const upload = multer({ storage })
+
 const router = express.Router()
 
-/**
- * @swagger
- * /user/profile:
- *   get:
- *     summary: Buscar perfil do usuário logado
- *     tags: [User]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Dados do perfil do usuário
- *       401:
- *         description: Token não fornecido
- */
 router.get('/profile', authMiddleware, userController.getProfile)
+router.patch('/avatar-url', authMiddleware, userController.updateAvatarUrl)
+router.patch('/avatar-file', authMiddleware, upload.single('avatar'), userController.updateAvatarFile)
 
 export default router
