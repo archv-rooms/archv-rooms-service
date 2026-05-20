@@ -1,6 +1,8 @@
 import cors from 'cors'
 
 const allowedOrigins = [ 
+  'https://archv-rooms-web.vercel.app/login',
+  'https://archv-rooms-web.vercel.app/pricing',
   'https://archv-rooms-web.vercel.app'
 ]
 
