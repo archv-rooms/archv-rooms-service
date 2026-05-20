@@ -31,5 +31,5 @@ export function setupSwagger(app) {
     res.setHeader('Content-Type', 'application/json')
     res.send(swaggerSpec)
   })
-  console.log('📄 Swagger disponível em http://localhost:3000/docs')
+  console.log('Swagger disponível em http://localhost:3000/docs')
 }
