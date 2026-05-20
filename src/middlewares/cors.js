@@ -1,9 +1,7 @@
 import cors from 'cors'
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:4200', 
-  'https://COLOCAR-AQ-FRONTEND.VERSEL.APP'
+const allowedOrigins = [ 
+  'https://archv-rooms-web.vercel.app'
 ]
 
 const corsMiddleware = cors({
