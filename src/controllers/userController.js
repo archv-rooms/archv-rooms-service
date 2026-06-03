@@ -1,22 +1,22 @@
 import { PrismaClient } from '@prisma/client'
-import path from 'path'
+import cloudinary from '../config/cloudinary.js'
+import streamifier from 'streamifier'
 
 const prisma = new PrismaClient()
 
+// GET /user/profile
 const getProfile = async (req, res) => {
   try {
-    const userId = req.userId
-
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: req.userId },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        avatar: true,
+        id:        true,
+        name:      true,
+        email:     true,
+        avatar:    true,   // ← funciona após a migration
         createdAt: true,
         subscriptions: {
-          where: { status: 'ACTIVE' },
+          where:   { status: 'ACTIVE' },
           include: { plan: true }
         }
       }
@@ -26,16 +26,14 @@ const getProfile = async (req, res) => {
       return res.status(404).json({ success: false, data: {}, message: 'Usuário não encontrado.' })
     }
 
-    res.status(200).json({
-      success: true,
-      data: { user },
-      message: 'Perfil carregado com sucesso.'
-    })
+    res.status(200).json({ success: true, data: { user }, message: 'Perfil carregado com sucesso.' })
   } catch (error) {
+    console.error('[getProfile]', error)
     res.status(500).json({ success: false, data: {}, message: 'Erro ao carregar perfil.' })
   }
 }
 
+// PATCH /user/avatar-url  — atualiza avatar por URL externa
 const updateAvatarUrl = async (req, res) => {
   try {
     const { avatarUrl } = req.body
@@ -45,39 +43,45 @@ const updateAvatarUrl = async (req, res) => {
 
     const user = await prisma.user.update({
       where: { id: req.userId },
-      data: { avatar: avatarUrl }
+      data:  { avatar: avatarUrl }
     })
 
-    res.status(200).json({
-      success: true,
-      data: { avatar: user.avatar },
-      message: 'Avatar atualizado com sucesso.'
-    })
+    res.status(200).json({ success: true, data: { avatar: user.avatar }, message: 'Avatar atualizado com sucesso.' })
   } catch (error) {
+    console.error('[updateAvatarUrl]', error)
     res.status(500).json({ success: false, data: {}, message: 'Erro ao atualizar avatar.' })
   }
 }
 
+// PATCH /user/avatar-file  — upload de imagem para o Cloudinary
 const updateAvatarFile = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, data: {}, message: 'Nenhum arquivo enviado.' })
+  }
+
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, data: {}, message: 'Nenhum arquivo enviado.' })
-    }
+    // Faz upload do buffer para o Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { resource_type: 'image', folder: 'archv-rooms/avatars' },
+        (error, result) => {
+          if (error || !result) return reject(error)
+          resolve(result)
+        }
+      )
+      streamifier.createReadStream(req.file.buffer).pipe(stream)
+    })
 
-    const avatarUrl = `/uploads/${req.file.filename}`
-
+    // Salva a URL segura do Cloudinary no banco
     const user = await prisma.user.update({
       where: { id: req.userId },
-      data: { avatar: avatarUrl }
+      data:  { avatar: result.secure_url }
     })
 
-    res.status(200).json({
-      success: true,
-      data: { avatar: user.avatar },
-      message: 'Avatar atualizado com sucesso.'
-    })
+    res.status(200).json({ success: true, data: { avatar: user.avatar }, message: 'Avatar atualizado com sucesso.' })
   } catch (error) {
-    res.status(500).json({ success: false, data: {}, message: 'Erro ao atualizar avatar.' })
+    console.error('[updateAvatarFile]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao fazer upload do avatar.' })
   }
 }
 
