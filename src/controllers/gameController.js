@@ -133,7 +133,7 @@ const updateGameImage = async (req, res) => {
 }
 
 export default {
-getGames,
+ getGames,
   getGameById,
   createGame,
   updateGame,

@@ -45,10 +45,16 @@ model Game {
   id          Int    @id @default(autoincrement())
   title       String
   console     String
+
   image       String
+
+  fileUrl     String?
+  fileName    String?
+
   accessLevel Int
+
   planId      Int?
-  plan        Plan?  @relation(fields: [planId], references: [id])
+  plan        Plan? @relation(fields: [planId], references: [id])
 
   @@index([planId], map: "Game_planId_fkey")
 }
