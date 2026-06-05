@@ -1,5 +1,6 @@
 import express from 'express'
 import gameController from '../controllers/gameController.js'
+import { upload } from '../config/multer.js'
 
 const router = express.Router()
 
@@ -102,5 +103,11 @@ router.put('/:id', gameController.updateGame)
  *         description: Jogo deletado com sucesso
  */
 router.delete('/:id', gameController.deleteGame)
+
+router.patch(
+  '/:id/image',
+  upload.single('image'),
+  gameController.updateGameImage
+)
 
 export default router

@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import cloudinary from '../config/cloudinary.js'
+import streamifier from 'streamifier'
 
 const prisma = new PrismaClient()
 
@@ -80,4 +82,61 @@ const deleteGame = async (req, res) => {
   }
 }
 
-export default { getGames, getGameById, createGame, updateGame, deleteGame }
+const updateGameImage = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      data: {},
+      message: 'Nenhuma imagem enviada.'
+    })
+  }
+
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'image',
+          folder: 'archv-rooms/games'
+        },
+        (error, result) => {
+          if (error || !result) return reject(error)
+          resolve(result)
+        }
+      )
+
+      streamifier.createReadStream(req.file.buffer).pipe(stream)
+    })
+
+    const game = await prisma.game.update({
+      where: {
+        id: Number(req.params.id)
+      },
+      data: {
+        image: result.secure_url
+      }
+    })
+
+    res.status(200).json({
+      success: true,
+      data: game,
+      message: 'Imagem do jogo atualizada.'
+    })
+  } catch (error) {
+    console.error(error)
+
+    res.status(500).json({
+      success: false,
+      data: {},
+      message: 'Erro ao atualizar imagem do jogo.'
+    })
+  }
+}
+
+export default {
+getGames,
+  getGameById,
+  createGame,
+  updateGame,
+  updateGameImage,
+  deleteGame
+}
