@@ -132,6 +132,50 @@ const updateGameImage = async (req, res) => {
   }
 }
 
+const updateGameFile = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      data: {},
+      message: 'Nenhum arquivo enviado.'
+    })
+  }
+
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'raw',       // 'raw' para zip/rar/7z
+          folder: 'archv-rooms/files'
+        },
+        (error, result) => {
+          if (error || !result) return reject(error)
+          resolve(result)
+        }
+      )
+      streamifier.createReadStream(req.file.buffer).pipe(stream)
+    })
+
+    const game = await prisma.game.update({
+      where: { id: Number(req.params.id) },
+      data: { fileUrl: result.secure_url }
+    })
+
+    res.status(200).json({
+      success: true,
+      data: game,
+      message: 'Arquivo da room atualizado.'
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({
+      success: false,
+      data: {},
+      message: 'Erro ao atualizar arquivo da room.'
+    })
+  }
+}
+
 export default {
  getGames,
   getGameById,

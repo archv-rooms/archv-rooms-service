@@ -110,4 +110,10 @@ router.patch(
   gameController.updateGameImage
 )
 
+router.patch(
+  '/:id/file',
+  upload.single('file'),
+  gameController.updateGameFile
+)
+
 export default router
