@@ -182,5 +182,6 @@ export default {
   createGame,
   updateGame,
   updateGameImage,
+  updateGameFile,
   deleteGame
 }
