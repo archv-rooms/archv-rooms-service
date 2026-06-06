@@ -36,14 +36,14 @@ app.use('/uploads', express.static(join(__dirname, '../uploads')))
 setupSwagger(app)
 
 // ─── Rotas ────────────────────────────────────────────────
-app.use('/admin', adminRoutes)
-app.use('/auth', authRoutes)
-app.use('/checkout', checkoutRoutes)
-app.use('/api/games', gameRoutes)
-app.use('/library', libraryRoutes)
-app.use('/plans', planRoutes)
-app.use('/upload', uploadRoutes)
-app.use('/user', userRoutes)
+app.use('/api/admin',    adminRoutes)
+app.use('/api/auth',     authRoutes)
+app.use('/api/checkout', checkoutRoutes)
+app.use('/api/games',    gameRoutes)
+app.use('/api/library',  libraryRoutes)
+app.use('/api/plans',    planRoutes)
+app.use('/api/upload',   uploadRoutes)
+app.use('/api/user',     userRoutes)
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
