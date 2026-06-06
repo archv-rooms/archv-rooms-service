@@ -38,10 +38,10 @@ const createGame = async (req, res) => {
     const game = await prisma.game.create({
       data: {
         title,
-        console: platform,
-        image: coverUrl,
-        accessLevel: accessLevel ?? 0,
-        planId: planId ?? null
+        console:     platform,
+        image:       coverUrl ?? '',   // ← fallback para string vazia
+        accessLevel: Number(accessLevel) ?? 0,
+        planId:      planId ? Number(planId) : null
       }
     })
     res.status(201).json({ success: true, data: game, message: 'Jogo criado.' })
@@ -59,10 +59,10 @@ const updateGame = async (req, res) => {
       where: { id: Number(req.params.id) },
       data: {
         title,
-        console: platform,
-        image: coverUrl,
-        accessLevel: accessLevel ?? 0,
-        planId: planId ?? null
+        console:     platform,
+        image:       coverUrl ?? '',
+        accessLevel: Number(accessLevel) ?? 0,
+        planId:      planId ? Number(planId) : null
       }
     })
     res.status(200).json({ success: true, data: game, message: 'Jogo atualizado.' })
