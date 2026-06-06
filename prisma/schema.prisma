@@ -8,13 +8,13 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  role      String   @default("user")
-  avatar    String?  // Adicionado para armazenar a URL do avatar
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  role          String         @default("user")
+  avatar        String?
   subscriptions Subscription[]
 }
 
@@ -32,7 +32,7 @@ model Subscription {
   id        Int      @id @default(autoincrement())
   userId    Int
   planId    Int
-  status    String   @default("active") // Adicionado valor padrão
+  status    String   @default("active")
   createdAt DateTime @default(now())
   plan      Plan     @relation(fields: [planId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
@@ -42,19 +42,31 @@ model Subscription {
 }
 
 model Game {
-  id          Int    @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   title       String
   console     String
-
   image       String
-
   fileUrl     String?
   fileName    String?
-
   accessLevel Int
-
   planId      Int?
-  plan        Plan? @relation(fields: [planId], references: [id])
+  plan        Plan?          @relation(fields: [planId], references: [id])
+  categories  GameCategory[]
 
   @@index([planId], map: "Game_planId_fkey")
+}
+
+model Category {
+  id    Int            @id @default(autoincrement())
+  name  String
+  games GameCategory[]
+}
+
+model GameCategory {
+  gameId     Int
+  categoryId Int
+  game       Game     @relation(fields: [gameId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@id([gameId, categoryId])
 }
