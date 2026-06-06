@@ -6,11 +6,10 @@ const subscriptionMiddleware = async (req, res, next) => {
   try {
     const userId = req.userId
 
-    const activeSubscription = await prisma.subscription.findFirst({
-      where:   { userId, status: 'ACTIVE' },
-      include: { plan: true }
-    })
-
+const activeSubscription = await prisma.subscription.findFirst({
+  where:   { userId, status: 'active' }, 
+  include: { plan: true }
+})
     if (!activeSubscription) {
       // Usuário autenticado mas sem plano ativo → acessa com nível 0 (tier FREE)
       req.accessLevel = 0
