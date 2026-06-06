@@ -32,6 +32,42 @@ const adminController = {
     res.json({ success: true, data: user })
   },
 
+  async banUser(req, res) {
+    const { reason } = req.body
+    if (!reason) {
+      return res.status(400).json({ success: false, message: 'Motivo obrigatório.' })
+    }
+    const user = await prisma.user.update({
+      where: { id: Number(req.params.id) },
+      data: { role: 'banned' }
+    })
+    res.json({ success: true, data: user })
+  },
+
+  async unbanUser(req, res) {
+    const user = await prisma.user.update({
+      where: { id: Number(req.params.id) },
+      data: { role: 'user' }
+    })
+    res.json({ success: true, data: user })
+  },
+
+  async grantPlan(req, res) {
+    const { planId } = req.body
+    if (!planId) {
+      return res.status(400).json({ success: false, message: 'planId obrigatório.' })
+    }
+    const subscription = await prisma.subscription.create({
+      data: {
+        userId: Number(req.params.id),
+        planId: Number(planId),
+        status: 'active'
+      },
+      include: { plan: true }
+    })
+    res.status(201).json({ success: true, data: subscription })
+  },
+
   async getPlans(req, res) {
     const plans = await prisma.plan.findMany()
     res.json({ success: true, data: plans })
@@ -48,18 +84,15 @@ const adminController = {
 
   async deletePlan(req, res) {
     const id = Number(req.params.id)
-
     const activeSubscriptions = await prisma.subscription.count({
       where: { planId: id, status: 'active' }
     })
-
     if (activeSubscriptions > 0) {
       return res.status(400).json({
         success: false,
         message: `Plano possui ${activeSubscriptions} assinatura(s) ativa(s). Cancele-as antes de deletar.`
       })
     }
-
     await prisma.plan.delete({ where: { id } })
     res.json({ success: true, message: 'Plano deletado com sucesso.' })
   },
@@ -77,16 +110,13 @@ const adminController = {
 
   async cancelSale(req, res) {
     const id = Number(req.params.id)
-
     const subscription = await prisma.subscription.findUnique({ where: { id } })
     if (!subscription) {
       return res.status(404).json({ success: false, message: 'Assinatura não encontrada.' })
     }
-
     if (subscription.status === 'cancelled') {
       return res.status(400).json({ success: false, message: 'Assinatura já está cancelada.' })
     }
-
     const updated = await prisma.subscription.update({
       where: { id },
       data: { status: 'cancelled' }
@@ -126,7 +156,7 @@ const adminController = {
     const { gameId } = req.body
     const relation = await prisma.gameCategory.create({
       data: {
-        gameId: Number(gameId),
+        gameId:     Number(gameId),
         categoryId: Number(req.params.id)
       }
     })
@@ -137,7 +167,7 @@ const adminController = {
     await prisma.gameCategory.delete({
       where: {
         gameId_categoryId: {
-          gameId: Number(req.params.gameId),
+          gameId:     Number(req.params.gameId),
           categoryId: Number(req.params.id)
         }
       }
@@ -155,10 +185,10 @@ const adminController = {
     const game = await prisma.game.create({
       data: {
         title,
-        console: platform,
-        image: coverUrl,
+        console:     platform,
+        image:       coverUrl ?? '',
         accessLevel: accessLevel ?? 0,
-        planId: planId ?? null
+        planId:      planId ?? null
       }
     })
     res.status(201).json({ success: true, data: game })
@@ -170,10 +200,10 @@ const adminController = {
       where: { id: Number(req.params.id) },
       data: {
         title,
-        console: platform,
-        image: coverUrl,
+        console:     platform,
+        image:       coverUrl ?? '',
         accessLevel: accessLevel ?? 0,
-        planId: planId ?? null
+        planId:      planId ?? null
       }
     })
     res.json({ success: true, data: game })
