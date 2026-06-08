@@ -22,7 +22,11 @@ const authMiddleware = (req, res, next) => {
       return res.status(401).json({ success: false, data: {}, message: 'Token inválido.' })
     }
 
-    req.userId = decoded.id
+    if (decoded.role === 'banned') {
+      return res.status(403).json({ success: false, data: {}, message: 'ACCOUNT_BANNED' })
+    }
+
+    req.userId   = decoded.id
     req.userRole = decoded.role
     return next()
   })
