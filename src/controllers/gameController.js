@@ -19,11 +19,9 @@ const getGameById = async (req, res) => {
     const game = await prisma.game.findUnique({
       where: { id: Number(req.params.id) }
     })
-
     if (!game) {
       return res.status(404).json({ success: false, data: {}, message: 'Jogo não encontrado.' })
     }
-
     res.status(200).json({ success: true, data: game, message: 'Jogo carregado.' })
   } catch (error) {
     console.error(error)
@@ -34,14 +32,13 @@ const getGameById = async (req, res) => {
 const createGame = async (req, res) => {
   try {
     const { title, platform, coverUrl, accessLevel, planId } = req.body
-
     const game = await prisma.game.create({
       data: {
         title,
-        console:     platform,
-        image:       coverUrl ?? '',   // ← fallback para string vazia
+        console: platform,
+        image: coverUrl ?? '',
         accessLevel: Number(accessLevel) ?? 0,
-        planId:      planId ? Number(planId) : null
+        planId: planId ? Number(planId) : null
       }
     })
     res.status(201).json({ success: true, data: game, message: 'Jogo criado.' })
@@ -53,14 +50,15 @@ const createGame = async (req, res) => {
 
 const updateGame = async (req, res) => {
   try {
+    console.log('BODY RECEBIDO:', req.body)
     const { title, platform, coverUrl, accessLevel, planId } = req.body
 
     const data = {}
     if (title !== undefined)       data.title       = title
-    if (platform !== undefined)    data.console      = platform
-    if (coverUrl)                  data.image        = coverUrl  // ← só atualiza se tiver valor
-    if (accessLevel !== undefined) data.accessLevel  = Number(accessLevel)
-    if (planId !== undefined)      data.planId       = planId ? Number(planId) : null
+    if (platform !== undefined)    data.console     = platform
+    if (coverUrl)                  data.image       = coverUrl
+    if (accessLevel !== undefined) data.accessLevel = Number(accessLevel)
+    if (planId !== undefined)      data.planId      = planId ? Number(planId) : null
 
     const game = await prisma.game.update({
       where: { id: Number(req.params.id) },
@@ -85,70 +83,38 @@ const deleteGame = async (req, res) => {
 
 const updateGameImage = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      data: {},
-      message: 'Nenhuma imagem enviada.'
-    })
+    return res.status(400).json({ success: false, data: {}, message: 'Nenhuma imagem enviada.' })
   }
-
   try {
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'image',
-          folder: 'archv-rooms/games'
-        },
+        { resource_type: 'image', folder: 'archv-rooms/games' },
         (error, result) => {
           if (error || !result) return reject(error)
           resolve(result)
         }
       )
-
       streamifier.createReadStream(req.file.buffer).pipe(stream)
     })
-
     const game = await prisma.game.update({
-      where: {
-        id: Number(req.params.id)
-      },
-      data: {
-        image: result.secure_url
-      }
+      where: { id: Number(req.params.id) },
+      data: { image: result.secure_url }
     })
-
-    res.status(200).json({
-      success: true,
-      data: game,
-      message: 'Imagem do jogo atualizada.'
-    })
+    res.status(200).json({ success: true, data: game, message: 'Imagem do jogo atualizada.' })
   } catch (error) {
     console.error(error)
-
-    res.status(500).json({
-      success: false,
-      data: {},
-      message: 'Erro ao atualizar imagem do jogo.'
-    })
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao atualizar imagem do jogo.' })
   }
 }
 
 const updateGameFile = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      data: {},
-      message: 'Nenhum arquivo enviado.'
-    })
+    return res.status(400).json({ success: false, data: {}, message: 'Nenhum arquivo enviado.' })
   }
-
   try {
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'raw',       // 'raw' para zip/rar/7z
-          folder: 'archv-rooms/files'
-        },
+        { resource_type: 'raw', folder: 'archv-rooms/files' },
         (error, result) => {
           if (error || !result) return reject(error)
           resolve(result)
@@ -156,29 +122,19 @@ const updateGameFile = async (req, res) => {
       )
       streamifier.createReadStream(req.file.buffer).pipe(stream)
     })
-
     const game = await prisma.game.update({
       where: { id: Number(req.params.id) },
       data: { fileUrl: result.secure_url }
     })
-
-    res.status(200).json({
-      success: true,
-      data: game,
-      message: 'Arquivo da room atualizado.'
-    })
+    res.status(200).json({ success: true, data: game, message: 'Arquivo da room atualizado.' })
   } catch (error) {
     console.error(error)
-    res.status(500).json({
-      success: false,
-      data: {},
-      message: 'Erro ao atualizar arquivo da room.'
-    })
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao atualizar arquivo da room.' })
   }
 }
 
 export default {
- getGames,
+  getGames,
   getGameById,
   createGame,
   updateGame,
