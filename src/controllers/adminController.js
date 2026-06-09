@@ -212,8 +212,23 @@ const adminController = {
   async deleteGame(req, res) {
     await prisma.game.delete({ where: { id: Number(req.params.id) } })
     res.json({ success: true })
-  }
+  },
 
+  async createPlan(req, res) {
+  const { name, price, description, accessLevel } = req.body
+  if (!name || price === undefined) {
+    return res.status(400).json({ success: false, message: 'Nome e preço são obrigatórios.' })
+  }
+  const plan = await prisma.plan.create({
+    data: {
+      name,
+      price:       Number(price),
+      description: description ?? '',
+      accessLevel: Number(accessLevel ?? 0)
+    }
+  })
+  res.status(201).json({ success: true, data: plan })
+},
 }
 
 export default adminController
