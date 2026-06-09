@@ -14,6 +14,7 @@ router.post('/users/:id/grant-plan',adminMiddleware, adminController.grantPlan)
 
 // ── PLANS ─────────────────────────────────────────────────────────
 router.get('/plans',        adminMiddleware, adminController.getPlans)
+router.post('/plans',       adminMiddleware, adminController.createPlan)
 router.put('/plans/:id',    adminMiddleware, adminController.updatePlan)
 router.delete('/plans/:id', adminMiddleware, adminController.deletePlan)
 
