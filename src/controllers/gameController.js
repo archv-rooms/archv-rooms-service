@@ -55,15 +55,16 @@ const updateGame = async (req, res) => {
   try {
     const { title, platform, coverUrl, accessLevel, planId } = req.body
 
+    const data = {}
+    if (title !== undefined)       data.title       = title
+    if (platform !== undefined)    data.console      = platform
+    if (coverUrl !== undefined)    data.image        = coverUrl
+    if (accessLevel !== undefined) data.accessLevel  = Number(accessLevel)
+    if (planId !== undefined)      data.planId       = planId ? Number(planId) : null
+
     const game = await prisma.game.update({
       where: { id: Number(req.params.id) },
-      data: {
-        title,
-        console:     platform,
-        image:       coverUrl ?? '',
-        accessLevel: Number(accessLevel) ?? 0,
-        planId:      planId ? Number(planId) : null
-      }
+      data
     })
     res.status(200).json({ success: true, data: game, message: 'Jogo atualizado.' })
   } catch (error) {
