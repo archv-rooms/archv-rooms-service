@@ -58,7 +58,7 @@ const updateGame = async (req, res) => {
     const data = {}
     if (title !== undefined)       data.title       = title
     if (platform !== undefined)    data.console      = platform
-    if (coverUrl !== undefined)    data.image        = coverUrl
+    if (coverUrl)                  data.image        = coverUrl  // ← só atualiza se tiver valor
     if (accessLevel !== undefined) data.accessLevel  = Number(accessLevel)
     if (planId !== undefined)      data.planId       = planId ? Number(planId) : null
 
