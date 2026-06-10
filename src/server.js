@@ -19,7 +19,7 @@ import libraryRoutes from './routes/libraryRoutes.js'
 import planRoutes from './routes/planRoutes.js'
 import uploadRoutes from './routes/upload.routes.js'
 import userRoutes from './routes/userRoutes.js'
-import platformsRoutes from './routes/platforms.routes.js';
+import platformsRoutes from './routes/platforms.Routes.js';
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
