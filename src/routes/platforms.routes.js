@@ -1,6 +1,6 @@
 // src/routes/platforms.routes.js
 import { Router } from 'express';
-import { getPlatforms } from '../controllers/platforms.controller.js';
+import { getPlatforms } from '../controllers/platforms.Controller.js';
 
 const router = Router();
 
