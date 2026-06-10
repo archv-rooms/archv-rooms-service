@@ -13,7 +13,7 @@ const getProfile = async (req, res) => {
         id:        true,
         name:      true,
         email:     true,
-        avatar:    true,   // ← funciona após a migration
+        avatar:    true,
         createdAt: true,
         subscriptions: {
           where:   { status: 'ACTIVE' },
@@ -33,7 +33,31 @@ const getProfile = async (req, res) => {
   }
 }
 
-// PATCH /user/avatar-url  — atualiza avatar por URL externa
+// PATCH /user/name
+const updateName = async (req, res) => {
+  try {
+    const { name } = req.body
+
+    if (!name || typeof name !== 'string' || name.trim().length < 2) {
+      return res.status(400).json({ success: false, data: {}, message: 'Nome inválido. Mínimo de 2 caracteres.' })
+    }
+
+    const trimmed = name.trim()
+
+    const user = await prisma.user.update({
+      where: { id: req.userId },
+      data:  { name: trimmed },
+      select: { id: true, name: true }
+    })
+
+    res.status(200).json({ success: true, data: { name: user.name }, message: 'Nome atualizado com sucesso.' })
+  } catch (error) {
+    console.error('[updateName]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao atualizar nome.' })
+  }
+}
+
+// PATCH /user/avatar-url
 const updateAvatarUrl = async (req, res) => {
   try {
     const { avatarUrl } = req.body
@@ -53,14 +77,13 @@ const updateAvatarUrl = async (req, res) => {
   }
 }
 
-// PATCH /user/avatar-file  — upload de imagem para o Cloudinary
+// PATCH /user/avatar-file
 const updateAvatarFile = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, data: {}, message: 'Nenhum arquivo enviado.' })
   }
 
   try {
-    // Faz upload do buffer para o Cloudinary
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { resource_type: 'image', folder: 'archv-rooms/avatars' },
@@ -72,7 +95,6 @@ const updateAvatarFile = async (req, res) => {
       streamifier.createReadStream(req.file.buffer).pipe(stream)
     })
 
-    // Salva a URL segura do Cloudinary no banco
     const user = await prisma.user.update({
       where: { id: req.userId },
       data:  { avatar: result.secure_url }
@@ -85,4 +107,4 @@ const updateAvatarFile = async (req, res) => {
   }
 }
 
-export default { getProfile, updateAvatarUrl, updateAvatarFile }
+export default { getProfile, updateName, updateAvatarUrl, updateAvatarFile }
