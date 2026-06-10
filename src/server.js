@@ -45,7 +45,7 @@ app.use('/api/library',  libraryRoutes)
 app.use('/api/plans',    planRoutes)
 app.use('/api/upload',   uploadRoutes)
 app.use('/api/user',     userRoutes)
-app.use('/platforms', platformsRoutes);
+app.use('/api/platforms', platformsRoutes);
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
