@@ -19,6 +19,7 @@ import libraryRoutes from './routes/libraryRoutes.js'
 import planRoutes from './routes/planRoutes.js'
 import uploadRoutes from './routes/upload.routes.js'
 import userRoutes from './routes/userRoutes.js'
+import platformsRoutes from './routes/platforms.routes.js';
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
@@ -44,6 +45,7 @@ app.use('/api/library',  libraryRoutes)
 app.use('/api/plans',    planRoutes)
 app.use('/api/upload',   uploadRoutes)
 app.use('/api/user',     userRoutes)
+app.use('/platforms', platformsRoutes);
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
