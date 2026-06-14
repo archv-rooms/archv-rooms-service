@@ -28,16 +28,26 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
+    const emailVerifyToken = crypto.randomBytes(32).toString('hex')
+
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword }
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        emailVerifyToken
+      }
     })
+
+    const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerifyToken}`
+    await emailService.sendVerificationEmail(email, verifyLink)
 
     user.password = undefined
 
     res.status(201).json({
       success: true,
       data: { user },
-      message: 'Usuário registrado com sucesso.'
+      message: 'Usuário registrado com sucesso. Verifique seu e-mail para ativar a conta.'
     })
   } catch (error) {
     console.log('ERRO REGISTER:', error)
@@ -202,4 +212,51 @@ const resetPassword = async (req, res) => {
   }
 }
 
-export default { register, login, forgotPassword, resetPassword }
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        data: {},
+        message: 'Token é obrigatório.'
+      })
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { emailVerifyToken: token }
+    })
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        data: {},
+        message: 'Token inválido.'
+      })
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerifyToken: null
+      }
+    })
+
+    res.status(200).json({
+      success: true,
+      data: {},
+      message: 'E-mail verificado com sucesso.'
+    })
+  } catch (error) {
+    console.log('ERRO VERIFY EMAIL:', error)
+    res.status(500).json({
+      success: false,
+      data: {},
+      message: 'Erro interno do servidor.'
+    })
+  }
+}
+
+export default { register, login, forgotPassword, resetPassword, verifyEmail }

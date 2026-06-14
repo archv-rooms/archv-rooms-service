@@ -34,4 +34,29 @@ const sendPasswordResetEmail = async (email, resetLink) => {
   })
 }
 
-export default { sendPasswordResetEmail }
+const sendVerificationEmail = async (email, verifyLink) => {
+  await transporter.sendMail({
+    from: `"Archv Rooms" <${process.env.GMAIL_USER}>`,
+    to: email,
+    subject: 'Verificação de e-mail — Archv Rooms',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
+        <h2>Verificação de e-mail</h2>
+        <p>Obrigado por se cadastrar no Archv Rooms!</p>
+        <p>Clique no botão abaixo para verificar seu e-mail:</p>
+        <a href="${verifyLink}" style="
+          display: inline-block;
+          padding: 12px 24px;
+          background-color: #000;
+          color: #fff;
+          text-decoration: none;
+          border-radius: 6px;
+          margin: 16px 0;
+        ">Verificar e-mail</a>
+        <p>Se você não criou uma conta, ignore este e-mail.</p>
+      </div>
+    `
+  })
+}
+
+export default { sendPasswordResetEmail, sendVerificationEmail }
