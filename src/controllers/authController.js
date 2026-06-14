@@ -28,26 +28,16 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
-    const emailVerifyToken = crypto.randomBytes(32).toString('hex')
-
     const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        emailVerifyToken
-      }
+      data: { name, email, password: hashedPassword }
     })
-
-    const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerifyToken}`
-    await emailService.sendVerificationEmail(email, verifyLink)
 
     user.password = undefined
 
     res.status(201).json({
       success: true,
       data: { user },
-      message: 'Usuário registrado com sucesso. Verifique seu e-mail para ativar a conta.'
+      message: 'Usuário registrado com sucesso.'
     })
   } catch (error) {
     console.log('ERRO REGISTER:', error)
