@@ -70,14 +70,54 @@ const login = async (req, res) => {
       })
     }
 
+    // Verifica bloqueio
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const minutos = Math.ceil((user.lockedUntil - new Date()) / 1000 / 60)
+      return res.status(429).json({
+        success: false,
+        data: {},
+        message: `Conta bloqueada. Tente novamente em ${minutos} minuto(s).`
+      })
+    }
+
     const isValidPassword = await bcrypt.compare(password, user.password)
+
     if (!isValidPassword) {
+      const MAX_ATTEMPTS = 5
+      const LOCK_MINUTES = 15
+      const novasTentativas = user.loginAttempts + 1
+      const bloqueado = novasTentativas >= MAX_ATTEMPTS
+
+      await prisma.user.update({
+        where: { email },
+        data: {
+          loginAttempts: novasTentativas,
+          lockedUntil: bloqueado
+            ? new Date(Date.now() + LOCK_MINUTES * 60 * 1000)
+            : null
+        }
+      })
+
+      if (bloqueado) {
+        return res.status(429).json({
+          success: false,
+          data: {},
+          message: `Muitas tentativas. Conta bloqueada por ${LOCK_MINUTES} minutos.`
+        })
+      }
+
       return res.status(401).json({
         success: false,
         data: {},
-        message: 'Senha inválida.'
+        message: `Senha inválida. ${MAX_ATTEMPTS - novasTentativas} tentativa(s) restante(s).`
       })
     }
+
+    // Login bem-sucedido — zera contadores
+    await prisma.user.update({
+      where: { email },
+      data: { loginAttempts: 0, lockedUntil: null }
+    })
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
