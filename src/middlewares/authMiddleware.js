@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken'
+import { PrismaClient } from '@prisma/client'
 
-const authMiddleware = (req, res, next) => {
+const prisma = new PrismaClient()
+
+const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization
 
   if (!authHeader) {
@@ -17,17 +20,26 @@ const authMiddleware = (req, res, next) => {
     return res.status(401).json({ success: false, data: {}, message: 'Token mal formatado.' })
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+  jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
     if (err) {
       return res.status(401).json({ success: false, data: {}, message: 'Token inválido.' })
     }
 
-    if (decoded.role === 'banned') {
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { id: true, role: true }
+    })
+
+    if (!user) {
+      return res.status(401).json({ success: false, data: {}, message: 'Usuário não encontrado.' })
+    }
+
+    if (user.role === 'banned') {
       return res.status(403).json({ success: false, data: {}, message: 'ACCOUNT_BANNED' })
     }
 
-    req.userId   = decoded.id
-    req.userRole = decoded.role
+    req.userId = user.id
+    req.userRole = user.role
     return next()
   })
 }
