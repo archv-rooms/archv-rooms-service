@@ -1,18 +1,10 @@
-import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS
-  }
-})
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 const sendPasswordResetEmail = async (email, resetLink) => {
-  await transporter.sendMail({
-    from: `"Archv Rooms" <${process.env.GMAIL_USER}>`,
+  await resend.emails.send({
+    from: 'Archv Rooms <onboarding@resend.dev>',
     to: email,
     subject: 'Redefinição de senha — Archv Rooms',
     html: `
@@ -37,8 +29,8 @@ const sendPasswordResetEmail = async (email, resetLink) => {
 }
 
 const sendVerificationEmail = async (email, verifyLink) => {
-  await transporter.sendMail({
-    from: `"Archv Rooms" <${process.env.GMAIL_USER}>`,
+  await resend.emails.send({
+    from: 'Archv Rooms <onboarding@resend.dev>',
     to: email,
     subject: 'Verificação de e-mail — Archv Rooms',
     html: `
