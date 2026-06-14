@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { PrismaClient } from '@prisma/client'
+import crypto from 'crypto'
+import emailService from '../config/emailService.js'
 
 const prisma = new PrismaClient()
 
@@ -100,4 +102,104 @@ const login = async (req, res) => {
   }
 }
 
-export default { register, login }
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        data: {},
+        message: 'E-mail é obrigatório.'
+      })
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } })
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        data: {},
+        message: 'Usuário não encontrado.'
+      })
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex')
+    const resetTokenExpiry = new Date(Date.now() + 3600000) // 1 hora
+
+    await prisma.user.update({
+      where: { email },
+      data: { resetToken, resetTokenExpiry }
+    })
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
+    await emailService.sendPasswordResetEmail(email, resetLink)
+
+    res.status(200).json({
+      success: true,
+      data: {},
+      message: 'E-mail de redefinição enviado com sucesso.'
+    })
+  } catch (error) {
+    console.log('ERRO FORGOT PASSWORD:', error)
+    res.status(500).json({
+      success: false,
+      data: {},
+      message: 'Erro interno do servidor.'
+    })
+  }
+}
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body
+
+    if (!token || !password) {
+      return res.status(400).json({
+        success: false,
+        data: {},
+        message: 'Token e nova senha são obrigatórios.'
+      })
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: { gt: new Date() }
+      }
+    })
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        data: {},
+        message: 'Token inválido ou expirado.'
+      })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null
+      }
+    })
+
+    res.status(200).json({
+      success: true,
+      data: {},
+      message: 'Senha redefinida com sucesso.'
+    })
+  } catch (error) {
+    console.log('ERRO RESET PASSWORD:', error)
+    res.status(500).json({
+      success: false,
+      data: {},
+      message: 'Erro interno do servidor.'
+    })
+  }
+}
+
+export default { register, login, forgotPassword, resetPassword }
