@@ -33,6 +33,7 @@ const register = async (req, res) => {
     })
 
     user.password = undefined
+    await emailService.sendWelcomeEmail(email, name)
 
     res.status(201).json({
       success: true,

@@ -51,4 +51,33 @@ const sendVerificationEmail = async (email, verifyLink) => {
   )
 }
 
-export default { sendPasswordResetEmail, sendVerificationEmail }
+const sendWelcomeEmail = async (email, name) => {
+  await sendEmail(
+    email,
+    'Bem-vindo ao Archv Rooms! 🎮',
+    `<div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
+      <h2>Bem-vindo, ${name}!</h2>
+      <p>Sua conta no Archv Rooms foi criada com sucesso.</p>
+      <p>Acesse a plataforma e explore nossos jogos retrô:</p>
+      <a href="${process.env.FRONTEND_URL}/library" style="display:inline-block;padding:12px 24px;background-color:#7c3aed;color:#fff;text-decoration:none;border-radius:6px;margin:16px 0;">Explorar jogos</a>
+      <p>Se precisar de ajuda, entre em contato: contatoarchvrooms@gmail.com</p>
+    </div>`
+  )
+}
+
+const sendPaymentConfirmationEmail = async (email, name, planName) => {
+  await sendEmail(
+    email,
+    'Pagamento confirmado — Archv Rooms 🎮',
+    `<div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
+      <h2>Pagamento confirmado!</h2>
+      <p>Olá, ${name}! Seu pagamento foi confirmado com sucesso.</p>
+      <p>Plano ativado: <strong>${planName}</strong></p>
+      <p>Agora você tem acesso completo aos jogos do seu plano:</p>
+      <a href="${process.env.FRONTEND_URL}/library" style="display:inline-block;padding:12px 24px;background-color:#7c3aed;color:#fff;text-decoration:none;border-radius:6px;margin:16px 0;">Jogar agora</a>
+      <p>Se precisar de ajuda, entre em contato: contatoarchvrooms@gmail.com</p>
+    </div>`
+  )
+}
+
+export default { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail, sendPaymentConfirmationEmail }

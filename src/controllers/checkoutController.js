@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import emailService from '../config/emailService.js'
 
 const prisma = new PrismaClient()
 
@@ -49,6 +50,13 @@ const checkout = async (req, res) => {
       data: { userId, planId, status: 'ACTIVE' },
       include: { plan: true }
     })
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true }
+    })
+
+    await emailService.sendPaymentConfirmationEmail(user.email, user.name, plan.name)
 
     res.status(201).json({
       success: true,
