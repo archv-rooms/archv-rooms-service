@@ -4,23 +4,23 @@ const prisma = new PrismaClient()
 
 const adminController = {
 
-  async getUsers(req, res) {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true, name: true, email: true, role: true, createdAt: true,
-        subscription: {
-          where: { status: 'active' },
-          include: { plan: true },
-          take: 1
-        }
+async getUsers(req, res) {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true, name: true, email: true, role: true, createdAt: true,
+      subscriptions: {
+        where: { status: 'active' },
+        include: { plan: true },
+        take: 1
       }
-    })
-    const mapped = users.map(u => ({
-      ...u,
-      subscription: u.subscription?.[0] ?? null
-    }))
-    res.json({ success: true, data: mapped })
-  },
+    }
+  })
+  const mapped = users.map(u => ({
+    ...u,
+    subscription: u.subscriptions?.[0] ?? null
+  }))
+  res.json({ success: true, data: mapped })
+},
 
   async setUserRole(req, res) {
     const { role } = req.body
