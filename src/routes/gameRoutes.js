@@ -1,6 +1,8 @@
 import express from 'express'
 import gameController from '../controllers/gameController.js'
 import { upload } from '../config/multer.js'
+import authMiddleware from '../middlewares/authMiddleware.js'
+import subscriptionMiddleware from '../middlewares/subscriptionMiddleware.js'
 
 const router = express.Router()
 
@@ -52,6 +54,8 @@ router.post('/', gameController.createGame)
  *   get:
  *     summary: Buscar jogo por ID
  *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -62,7 +66,7 @@ router.post('/', gameController.createGame)
  *       200:
  *         description: Jogo encontrado
  */
-router.get('/:id', gameController.getGameById)
+router.get('/:id', authMiddleware, subscriptionMiddleware, gameController.getGameById)
 
 /**
  * @swagger
