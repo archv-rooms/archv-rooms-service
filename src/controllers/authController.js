@@ -28,17 +28,28 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
+    const emailVerifyToken = crypto.randomBytes(32).toString('hex')
+
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword }
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        emailVerified: false,
+        emailVerifyToken
+      }
     })
 
     user.password = undefined
+
+    const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerifyToken}`
+    await emailService.sendVerificationEmail(email, verifyLink)
     await emailService.sendWelcomeEmail(email, name)
 
     res.status(201).json({
       success: true,
       data: { user },
-      message: 'Usuário registrado com sucesso.'
+      message: 'Usuário registrado. Verifique seu e-mail para ativar a conta.'
     })
   } catch (error) {
     console.log('ERRO REGISTER:', error)
@@ -62,14 +73,24 @@ const login = async (req, res) => {
       })
     }
 
-    const user = await prisma.user.findUnique({ where: { email } })
+const user = await prisma.user.findUnique({ where: { email } })
     if (!user) {
-      return res.status(404).json({
+    return res.status(404).json({
         success: false,
         data: {},
         message: 'Usuário não encontrado.'
       })
     }
+
+// Verifica e-mail verificado
+    if (!user.emailVerified) {
+    return res.status(403).json({
+        success: false,
+        data: {},
+        message: 'E-mail não verificado. Verifique sua caixa de entrada.'
+      }) 
+    }
+
 
     // Verifica bloqueio
     if (user.lockedUntil && user.lockedUntil > new Date()) {
