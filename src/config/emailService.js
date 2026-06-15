@@ -80,4 +80,19 @@ const sendPaymentConfirmationEmail = async (email, name, planName) => {
   )
 }
 
-export default { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail, sendPaymentConfirmationEmail }
+const sendDonationEmail = async (email, name, amount) => {
+  await sendEmail(
+    email,
+    'Obrigado pela sua doação — Archv Rooms ♥',
+    `<div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
+      <h2>Obrigado, ${name}! ♥</h2>
+      <p>Recebemos sua doação de <strong>R$ ${amount}</strong> com sucesso.</p>
+      <p>Seu apoio é fundamental para manter o Archv Rooms vivo e crescendo.</p>
+      <p>Cada contribuição nos ajuda a trazer mais jogos, melhorias e novidades para a plataforma.</p>
+      <a href="${process.env.FRONTEND_URL}" style="display:inline-block;padding:12px 24px;background-color:#7c3aed;color:#fff;text-decoration:none;border-radius:6px;margin:16px 0;">Voltar ao Archv Rooms</a>
+      <p>Se precisar de ajuda, entre em contato: contatoarchvrooms@gmail.com</p>
+    </div>`
+  )
+}
+
+export default { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail, sendPaymentConfirmationEmail, sendDonationEmail }

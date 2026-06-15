@@ -25,10 +25,28 @@ const handleMercadoPago = async (req, res) => {
       return res.sendStatus(200)
     }
 
-    const { userId, planId } = payment.metadata
+    const metadata = payment.metadata
+
+    // Fluxo de doação
+    if (metadata?.type === 'donation') {
+      const { donor_email, donor_name, amount } = metadata
+
+      if (donor_email) {
+        await emailService.sendDonationEmail(
+          donor_email,
+          donor_name || 'Apoiador',
+          Number(amount).toFixed(2)
+        )
+      }
+
+      return res.sendStatus(200)
+    }
+
+    // Fluxo de assinatura de plano
+    const { userId, planId } = metadata
 
     if (!userId || !planId) {
-      console.error('Webhook sem metadata userId/planId:', payment.metadata)
+      console.error('Webhook sem metadata userId/planId:', metadata)
       return res.sendStatus(200)
     }
 
