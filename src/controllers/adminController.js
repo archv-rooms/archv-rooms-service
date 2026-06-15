@@ -6,9 +6,20 @@ const adminController = {
 
   async getUsers(req, res) {
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true, createdAt: true }
+      select: {
+        id: true, name: true, email: true, role: true, createdAt: true,
+        subscription: {
+          where: { status: 'active' },
+          include: { plan: true },
+          take: 1
+        }
+      }
     })
-    res.json({ success: true, data: users })
+    const mapped = users.map(u => ({
+      ...u,
+      subscription: u.subscription?.[0] ?? null
+    }))
+    res.json({ success: true, data: mapped })
   },
 
   async setUserRole(req, res) {
@@ -33,13 +44,17 @@ const adminController = {
   },
 
   async banUser(req, res) {
-    const { reason } = req.body
+    const { reason, type, durationHours } = req.body
     if (!reason) {
       return res.status(400).json({ success: false, message: 'Motivo obrigatório.' })
     }
+    const data = { role: 'banned' }
+    if (type === 'temporary' && durationHours) {
+      data.bannedUntil = new Date(Date.now() + durationHours * 60 * 60 * 1000)
+    }
     const user = await prisma.user.update({
       where: { id: Number(req.params.id) },
-      data: { role: 'banned' }
+      data
     })
     res.json({ success: true, data: user })
   },
@@ -74,10 +89,15 @@ const adminController = {
   },
 
   async updatePlan(req, res) {
-    const { name, price, description } = req.body
+    const { name, price, description, accessLevel } = req.body
     const plan = await prisma.plan.update({
       where: { id: Number(req.params.id) },
-      data: { name, price, description }
+      data: {
+        name,
+        price: Number(price),
+        description,
+        accessLevel: Number(accessLevel ?? 0)
+      }
     })
     res.json({ success: true, data: plan })
   },
@@ -215,20 +235,20 @@ const adminController = {
   },
 
   async createPlan(req, res) {
-  const { name, price, description, accessLevel } = req.body
-  if (!name || price === undefined) {
-    return res.status(400).json({ success: false, message: 'Nome e preço são obrigatórios.' })
-  }
-  const plan = await prisma.plan.create({
-    data: {
-      name,
-      price:       Number(price),
-      description: description ?? '',
-      accessLevel: Number(accessLevel ?? 0)
+    const { name, price, description, accessLevel } = req.body
+    if (!name || price === undefined) {
+      return res.status(400).json({ success: false, message: 'Nome e preço são obrigatórios.' })
     }
-  })
-  res.status(201).json({ success: true, data: plan })
-},
+    const plan = await prisma.plan.create({
+      data: {
+        name,
+        price:       Number(price),
+        description: description ?? '',
+        accessLevel: Number(accessLevel ?? 0)
+      }
+    })
+    res.status(201).json({ success: true, data: plan })
+  },
 }
 
 export default adminController
