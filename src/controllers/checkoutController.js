@@ -74,9 +74,9 @@ const checkout = async (req, res) => {
         },
         notification_url: `${process.env.BACKEND_URL}/webhook/mercadopago`,
         back_urls: {
-          success: `${process.env.FRONTEND_URL}/payment/success`,
-          failure: `${process.env.FRONTEND_URL}/payment/failure`,
-          pending: `${process.env.FRONTEND_URL}/payment/pending`
+          success: `${process.env.FRONTEND_URL}/payment-success`,
+          failure: `${process.env.FRONTEND_URL}/error`,
+          pending: `${process.env.FRONTEND_URL}/payment-success`
         },
         auto_return: 'approved'
       }
