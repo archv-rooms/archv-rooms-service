@@ -4,6 +4,9 @@ import express from 'express'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
+// ─── Passport ────────────────────────────────────────────
+import passport from './config/passport.js'
+
 // ─── Middlewares ──────────────────────────────────────────
 import corsMiddleware from './middlewares/cors.js'
 
@@ -19,10 +22,11 @@ import libraryRoutes from './routes/libraryRoutes.js'
 import planRoutes from './routes/planRoutes.js'
 import uploadRoutes from './routes/upload.routes.js'
 import userRoutes from './routes/userRoutes.js'
-import platformsRoutes from './routes/platforms.routes.js';
+import platformsRoutes from './routes/platforms.routes.js'
 import webhookRoutes from './routes/webhookRoutes.js'
 import donationRoutes from './routes/donationRoutes.js'
 import saveRoutes from './routes/saves.js'
+import googleAuthRoutes from './routes/googleAuthRoutes.js'
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
@@ -34,6 +38,7 @@ const PORT = process.env.PORT || 3000
 // ─── Middlewares globais ──────────────────────────────────
 app.use(corsMiddleware)
 app.use(express.json())
+app.use(passport.initialize())
 app.use('/uploads', express.static(join(__dirname, '../uploads')))
 
 // ─── Swagger ──────────────────────────────────────────────
@@ -48,10 +53,11 @@ app.use('/api/library',  libraryRoutes)
 app.use('/api/plans',    planRoutes)
 app.use('/api/upload',   uploadRoutes)
 app.use('/api/user',     userRoutes)
-app.use('/api/platforms', platformsRoutes);
-app.use('/webhook', webhookRoutes)
+app.use('/api/platforms', platformsRoutes)
+app.use('/webhook',      webhookRoutes)
 app.use('/api/donation', donationRoutes)
-app.use('/api/saves', saveRoutes)
+app.use('/api/saves',    saveRoutes)
+app.use('/auth',         googleAuthRoutes)
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
