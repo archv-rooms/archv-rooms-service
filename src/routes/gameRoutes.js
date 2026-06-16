@@ -2,6 +2,7 @@ import express from 'express'
 import gameController from '../controllers/gameController.js'
 import { upload } from '../config/multer.js'
 import authMiddleware from '../middlewares/authMiddleware.js'
+import optionalAuthMiddleware from '../middlewares/optionalAuthMiddleware.js'
 import subscriptionMiddleware from '../middlewares/subscriptionMiddleware.js'
 
 const router = express.Router()
@@ -16,7 +17,27 @@ const router = express.Router()
  *       200:
  *         description: Lista de jogos
  */
-router.get('/', gameController.getGames)
+router.get('/', optionalAuthMiddleware, subscriptionMiddleware, gameController.getGames)
+
+/**
+ * @swagger
+ * /api/games/{id}:
+ *   get:
+ *     summary: Buscar jogo por ID
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Jogo encontrado
+ */
+router.get('/:id', authMiddleware, subscriptionMiddleware, gameController.getGameById)
 
 /**
  * @swagger
@@ -46,27 +67,7 @@ router.get('/', gameController.getGames)
  *       201:
  *         description: Jogo criado com sucesso
  */
-router.post('/', gameController.createGame)
-
-/**
- * @swagger
- * /api/games/{id}:
- *   get:
- *     summary: Buscar jogo por ID
- *     tags: [Games]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Jogo encontrado
- */
-router.get('/:id', authMiddleware, subscriptionMiddleware, gameController.getGameById)
+router.post('/', authMiddleware, gameController.createGame)
 
 /**
  * @swagger
@@ -86,7 +87,7 @@ router.get('/:id', authMiddleware, subscriptionMiddleware, gameController.getGam
  *       200:
  *         description: Jogo atualizado com sucesso
  */
-router.put('/:id', gameController.updateGame)
+router.put('/:id', authMiddleware, gameController.updateGame)
 
 /**
  * @swagger
@@ -106,18 +107,46 @@ router.put('/:id', gameController.updateGame)
  *       200:
  *         description: Jogo deletado com sucesso
  */
-router.delete('/:id', gameController.deleteGame)
+router.delete('/:id', authMiddleware, gameController.deleteGame)
 
-router.patch(
-  '/:id/image',
-  upload.single('image'),
-  gameController.updateGameImage
-)
+/**
+ * @swagger
+ * /api/games/{id}/image:
+ *   patch:
+ *     summary: Atualizar imagem do jogo
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Imagem atualizada com sucesso
+ */
+router.patch('/:id/image', authMiddleware, upload.single('image'), gameController.updateGameImage)
 
-router.patch(
-  '/:id/file',
-  upload.single('file'),
-  gameController.updateGameFile
-)
+/**
+ * @swagger
+ * /api/games/{id}/file:
+ *   patch:
+ *     summary: Atualizar arquivo do jogo
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Arquivo atualizado com sucesso
+ */
+router.patch('/:id/file', authMiddleware, upload.single('file'), gameController.updateGameFile)
 
 export default router

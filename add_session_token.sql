@@ -1,1 +1,0 @@
-ALTER TABLE User ADD COLUMN sessionToken VARCHAR(191) NULL; 
