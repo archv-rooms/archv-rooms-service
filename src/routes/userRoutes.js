@@ -10,5 +10,6 @@ router.patch('/name',        authMiddleware,                           userContr
 router.patch('/avatar-url',  authMiddleware,                           userController.updateAvatarUrl)
 router.patch('/avatar-file', authMiddleware, upload.single('avatar'),  userController.updateAvatarFile)
 router.patch('/onboarding', authMiddleware, userController.completeOnboarding)
+router.get('/payments', authMiddleware, userController.getPaymentHistory)
 
 export default router

@@ -58,11 +58,23 @@ const handleMercadoPago = async (req, res) => {
       return res.sendStatus(200)
     }
 
-    await prisma.subscription.create({
+    const subscription = await prisma.subscription.create({
       data: {
         userId: Number(userId),
         planId: Number(planId),
         status: 'ACTIVE'
+      }
+    })
+
+    await prisma.payment.create({
+      data: {
+        userId: Number(userId),
+        subscriptionId: subscription.id,
+        mpPaymentId: String(paymentId),
+        amount: payment.transaction_amount,
+        status: payment.status,
+        method: payment.payment_type_id,
+        description: payment.description || null
       }
     })
 

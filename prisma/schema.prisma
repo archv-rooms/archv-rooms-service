@@ -23,6 +23,7 @@ model User {
   lockedUntil        DateTime?
   sessionToken  String?
   onboardingDone Boolean 
+  payments  Payment[]
   subscriptions Subscription[]
 }
 
@@ -43,6 +44,7 @@ model Subscription {
   status    String   @default("active")
   createdAt DateTime @default(now())
   plan      Plan     @relation(fields: [planId], references: [id])
+  payments  Payment[]
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([planId], map: "Subscription_planId_fkey")
@@ -90,4 +92,18 @@ model GameSave {
   @@unique([userId, gameId, slot])
   @@index([userId])
   @@index([gameId])
+}
+
+model Payment {
+  id             Int          @id @default(autoincrement())
+  userId         Int
+  subscriptionId Int?
+  mpPaymentId    String       @unique  // ID do pagamento no Mercado Pago
+  amount         Float
+  status         String       // approved, pending, cancelled, refunded
+  method         String?      // pix, credit_card, etc
+  description    String?
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id])
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
 }

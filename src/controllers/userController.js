@@ -123,4 +123,24 @@ const completeOnboarding = async (req, res) => {
   }
 }
 
-export default { getProfile, updateName, updateAvatarUrl, updateAvatarFile, completeOnboarding }
+// GET /user/payments
+const getPaymentHistory = async (req, res) => {
+  try {
+    const payments = await prisma.payment.findMany({
+      where: { userId: req.userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        subscription: {
+          include: { plan: true }
+        }
+      }
+    })
+
+    res.status(200).json({ success: true, data: { payments }, message: 'Histórico carregado.' })
+  } catch (error) {
+    console.error('[getPaymentHistory]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao carregar histórico.' })
+  }
+}
+
+export default { getProfile, updateName, updateAvatarUrl, updateAvatarFile, completeOnboarding, getPaymentHistory }
