@@ -22,6 +22,7 @@ import userRoutes from './routes/userRoutes.js'
 import platformsRoutes from './routes/platforms.routes.js';
 import webhookRoutes from './routes/webhookRoutes.js'
 import donationRoutes from './routes/donationRoutes.js'
+import saveRoutes from './routes/saves.js'
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
@@ -50,6 +51,7 @@ app.use('/api/user',     userRoutes)
 app.use('/api/platforms', platformsRoutes);
 app.use('/webhook', webhookRoutes)
 app.use('/api/donation', donationRoutes)
+app.use('/api/saves', saveRoutes)
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {

@@ -77,3 +77,16 @@ model GameCategory {
 
   @@id([gameId, categoryId])
 }
+
+model GameSave {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  gameId    Int
+  slot      Int      @default(1)
+  saveData  Json
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, gameId, slot])
+  @@index([userId])
+  @@index([gameId])
+}
