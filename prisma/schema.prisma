@@ -21,6 +21,7 @@ model User {
   emailVerifyToken   String?
   loginAttempts      Int       @default(0)
   lockedUntil        DateTime?
+  sessionToken  String?
   subscriptions Subscription[]
 }
 

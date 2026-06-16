@@ -73,26 +73,23 @@ const login = async (req, res) => {
       })
     }
 
-const user = await prisma.user.findUnique({ where: { email } })
+    const user = await prisma.user.findUnique({ where: { email } })
     if (!user) {
-    return res.status(404).json({
+      return res.status(404).json({
         success: false,
         data: {},
         message: 'Usuário não encontrado.'
       })
     }
 
-// Verifica e-mail verificado
     if (!user.emailVerified) {
-    return res.status(403).json({
+      return res.status(403).json({
         success: false,
         data: {},
         message: 'E-mail não verificado. Verifique sua caixa de entrada.'
-      }) 
+      })
     }
 
-
-    // Verifica bloqueio
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const minutos = Math.ceil((user.lockedUntil - new Date()) / 1000 / 60)
       return res.status(429).json({
@@ -135,14 +132,20 @@ const user = await prisma.user.findUnique({ where: { email } })
       })
     }
 
-    // Login bem-sucedido — zera contadores
+    // Login bem-sucedido — zera contadores e gera novo sessionToken
+    const sessionToken = crypto.randomBytes(32).toString('hex')
+
     await prisma.user.update({
       where: { email },
-      data: { loginAttempts: 0, lockedUntil: null }
+      data: {
+        loginAttempts: 0,
+        lockedUntil: null,
+        sessionToken        // invalida qualquer sessão anterior automaticamente
+      }
     })
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, role: user.role, sessionToken },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     )
@@ -186,7 +189,7 @@ const forgotPassword = async (req, res) => {
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex')
-    const resetTokenExpiry = new Date(Date.now() + 3600000) // 1 hora
+    const resetTokenExpiry = new Date(Date.now() + 3600000)
 
     await prisma.user.update({
       where: { email },
@@ -245,7 +248,8 @@ const resetPassword = async (req, res) => {
       data: {
         password: hashedPassword,
         resetToken: null,
-        resetTokenExpiry: null
+        resetTokenExpiry: null,
+        sessionToken: null    // força logout em todos os dispositivos após reset de senha
       }
     })
 

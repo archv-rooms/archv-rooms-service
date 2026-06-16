@@ -27,7 +27,7 @@ const authMiddleware = async (req, res, next) => {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      select: { id: true, role: true }
+      select: { id: true, role: true, sessionToken: true }
     })
 
     if (!user) {
@@ -36,6 +36,11 @@ const authMiddleware = async (req, res, next) => {
 
     if (user.role === 'banned') {
       return res.status(403).json({ success: false, data: {}, message: 'ACCOUNT_BANNED' })
+    }
+
+    // Valida se a sessão ainda é a mais recente
+    if (!decoded.sessionToken || decoded.sessionToken !== user.sessionToken) {
+      return res.status(401).json({ success: false, data: {}, message: 'SESSION_CONFLICT' })
     }
 
     req.userId = user.id
