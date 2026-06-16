@@ -22,6 +22,7 @@ model User {
   loginAttempts      Int       @default(0)
   lockedUntil        DateTime?
   sessionToken  String?
+  onboardingDone Boolean 
   subscriptions Subscription[]
 }
 

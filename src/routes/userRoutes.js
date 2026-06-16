@@ -9,5 +9,6 @@ router.get('/profile',      authMiddleware,                           userContro
 router.patch('/name',        authMiddleware,                           userController.updateName)
 router.patch('/avatar-url',  authMiddleware,                           userController.updateAvatarUrl)
 router.patch('/avatar-file', authMiddleware, upload.single('avatar'),  userController.updateAvatarFile)
+router.patch('/onboarding', authMiddleware, userController.completeOnboarding)
 
 export default router

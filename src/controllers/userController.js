@@ -15,6 +15,7 @@ const getProfile = async (req, res) => {
         email:     true,
         avatar:    true,
         createdAt: true,
+        onboardingDone: true,
         subscriptions: {
           where:   { status: 'ACTIVE' },
           include: { plan: true }
@@ -107,4 +108,19 @@ const updateAvatarFile = async (req, res) => {
   }
 }
 
-export default { getProfile, updateName, updateAvatarUrl, updateAvatarFile }
+// PATCH /user/onboarding
+const completeOnboarding = async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.userId },
+      data:  { onboardingDone: true }
+    })
+
+    res.status(200).json({ success: true, data: {}, message: 'Onboarding concluído.' })
+  } catch (error) {
+    console.error('[completeOnboarding]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao concluir onboarding.' })
+  }
+}
+
+export default { getProfile, updateName, updateAvatarUrl, updateAvatarFile, completeOnboarding }
