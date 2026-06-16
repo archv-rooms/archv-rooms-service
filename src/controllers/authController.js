@@ -36,7 +36,8 @@ const register = async (req, res) => {
         email,
         password: hashedPassword,
         emailVerified: false,
-        emailVerifyToken
+        emailVerifyToken,
+        onboardingDone: false 
       }
     })
 
