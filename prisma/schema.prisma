@@ -26,6 +26,8 @@ model User {
   payments  Payment[]
   subscriptions Subscription[]
   favorites Favorite[]
+  sessions  GameSession[]
+
 }
 
 model Plan {
@@ -64,6 +66,8 @@ model Game {
   plan        Plan?          @relation(fields: [planId], references: [id])
   categories  GameCategory[]
   favorites Favorite[]
+  sessions  GameSession[]
+
 
   @@index([planId], map: "Game_planId_fkey")
 }
@@ -119,6 +123,20 @@ model Favorite {
   game      Game     @relation(fields: [gameId], references: [id])
 
   @@unique([userId, gameId])
+  @@index([userId])
+  @@index([gameId])
+}
+
+model GameSession {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  gameId    Int
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+  duration  Int?     // duração em segundos
+  user      User     @relation(fields: [userId], references: [id])
+  game      Game     @relation(fields: [gameId], references: [id])
+
   @@index([userId])
   @@index([gameId])
 }

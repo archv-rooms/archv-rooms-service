@@ -27,6 +27,7 @@ import webhookRoutes from './routes/webhookRoutes.js'
 import donationRoutes from './routes/donationRoutes.js'
 import saveRoutes from './routes/saves.js'
 import googleAuthRoutes from './routes/googleAuthRoutes.js'
+import gameSessionRoutes from './routes/gameSessionRoutes.js'
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
@@ -58,6 +59,7 @@ app.use('/webhook',      webhookRoutes)
 app.use('/api/donation', donationRoutes)
 app.use('/api/saves',    saveRoutes)
 app.use('/auth',         googleAuthRoutes)
+app.use('/api/sessions', gameSessionRoutes)
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
