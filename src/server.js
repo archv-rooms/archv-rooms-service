@@ -34,6 +34,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const app = express()
+app.set('etag', false)
 const PORT = process.env.PORT || 3000
 
 // ─── Middlewares globais ──────────────────────────────────
