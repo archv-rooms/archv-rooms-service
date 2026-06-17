@@ -12,4 +12,7 @@ router.patch('/avatar-file', authMiddleware, upload.single('avatar'),  userContr
 router.patch('/onboarding', authMiddleware, userController.completeOnboarding)
 router.get('/payments', authMiddleware, userController.getPaymentHistory)
 
+router.post('/favorites/:gameId', authMiddleware, userController.toggleFavorite)
+router.get('/favorites',          authMiddleware, userController.getFavorites)
+
 export default router

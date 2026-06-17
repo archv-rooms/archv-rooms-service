@@ -25,6 +25,7 @@ model User {
   onboardingDone Boolean 
   payments  Payment[]
   subscriptions Subscription[]
+  favorites Favorite[]
 }
 
 model Plan {
@@ -62,6 +63,7 @@ model Game {
   planId      Int?
   plan        Plan?          @relation(fields: [planId], references: [id])
   categories  GameCategory[]
+  favorites Favorite[]
 
   @@index([planId], map: "Game_planId_fkey")
 }
@@ -106,4 +108,17 @@ model Payment {
   createdAt      DateTime     @default(now())
   user           User         @relation(fields: [userId], references: [id])
   subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  gameId    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  game      Game     @relation(fields: [gameId], references: [id])
+
+  @@unique([userId, gameId])
+  @@index([userId])
+  @@index([gameId])
 }

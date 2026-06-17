@@ -143,4 +143,56 @@ const getPaymentHistory = async (req, res) => {
   }
 }
 
-export default { getProfile, updateName, updateAvatarUrl, updateAvatarFile, completeOnboarding, getPaymentHistory }
+// POST /user/favorites/:gameId
+const toggleFavorite = async (req, res) => {
+  try {
+    const gameId = parseInt(req.params.gameId, 10)
+
+    if (!gameId) {
+      return res.status(400).json({ success: false, data: {}, message: 'ID do jogo inválido.' })
+    }
+
+    const existing = await prisma.favorite.findUnique({
+      where: { userId_gameId: { userId: req.userId, gameId } }
+    })
+
+    if (existing) {
+      await prisma.favorite.delete({ where: { id: existing.id } })
+      return res.status(200).json({ success: true, data: { favorited: false }, message: 'Jogo removido dos favoritos.' })
+    }
+
+    await prisma.favorite.create({ data: { userId: req.userId, gameId } })
+    return res.status(200).json({ success: true, data: { favorited: true }, message: 'Jogo adicionado aos favoritos.' })
+  } catch (error) {
+    console.error('[toggleFavorite]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao atualizar favorito.' })
+  }
+}
+
+// GET /user/favorites
+const getFavorites = async (req, res) => {
+  try {
+    const favorites = await prisma.favorite.findMany({
+      where: { userId: req.userId },
+      include: { game: true }
+    })
+
+    const games = favorites.map(f => f.game)
+
+    res.status(200).json({ success: true, data: { games }, message: 'Favoritos carregados.' })
+  } catch (error) {
+    console.error('[getFavorites]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao carregar favoritos.' })
+  }
+}
+
+export default {
+  getProfile,
+  updateName,
+  updateAvatarUrl,
+  updateAvatarFile,
+  completeOnboarding,
+  getPaymentHistory,
+  toggleFavorite,
+  getFavorites
+}
