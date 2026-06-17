@@ -140,3 +140,9 @@ model GameSession {
   @@index([userId])
   @@index([gameId])
 }
+
+model GlobalConfig {
+  id        Int      @id @default(1)
+  themeKey  String   @default("default")
+  updatedAt DateTime @updatedAt
+}

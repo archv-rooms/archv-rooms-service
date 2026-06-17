@@ -28,6 +28,7 @@ import donationRoutes from './routes/donationRoutes.js'
 import saveRoutes from './routes/saves.js'
 import googleAuthRoutes from './routes/googleAuthRoutes.js'
 import gameSessionRoutes from './routes/gameSessionRoutes.js'
+import themeRoutes from './routes/themeRoutes.js'
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
@@ -61,6 +62,7 @@ app.use('/api/donation', donationRoutes)
 app.use('/api/saves',    saveRoutes)
 app.use('/auth',         googleAuthRoutes)
 app.use('/api/sessions', gameSessionRoutes)
+app.use('/api/admin', themeRoutes)
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
