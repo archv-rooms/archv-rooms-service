@@ -38,13 +38,13 @@ const authMiddleware = async (req, res, next) => {
       return res.status(403).json({ success: false, data: {}, message: 'ACCOUNT_BANNED' })
     }
 
-    // Valida se a sessão ainda é a mais recente
     if (!decoded.sessionToken || decoded.sessionToken !== user.sessionToken) {
       return res.status(401).json({ success: false, data: {}, message: 'SESSION_CONFLICT' })
     }
 
     req.userId = user.id
     req.userRole = user.role
+    req.user = { id: user.id, role: user.role }
     return next()
   })
 }
