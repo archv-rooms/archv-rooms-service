@@ -29,6 +29,8 @@ import saveRoutes from './routes/saves.js'
 import googleAuthRoutes from './routes/googleAuthRoutes.js'
 import gameSessionRoutes from './routes/gameSessionRoutes.js'
 import themeRoutes from './routes/themeRoutes.js'
+import friendRoutes from './routes/friendRoutes.js'
+import leaderboardRoutes from './routes/leaderboardRoutes.js'
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
@@ -63,6 +65,8 @@ app.use('/api/saves',    saveRoutes)
 app.use('/auth',         googleAuthRoutes)
 app.use('/api/sessions', gameSessionRoutes)
 app.use('/api/admin', themeRoutes)
+app.use('/api/friends',     friendRoutes)
+app.use('/api/leaderboard', leaderboardRoutes)
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
