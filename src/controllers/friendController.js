@@ -79,9 +79,10 @@ const getFriends = async (req, res) => {
       }
     })
 
-    const friends = friendships.map(f =>
-      f.senderId === userId ? f.receiver : f.sender
-    )
+    const friends = friendships.map(f => {
+      const user = f.senderId === userId ? f.receiver : f.sender
+      return { ...user, friendshipId: f.id }
+    })
 
     res.status(200).json({ success: true, data: friends, message: 'Amigos listados.' })
   } catch (error) {
