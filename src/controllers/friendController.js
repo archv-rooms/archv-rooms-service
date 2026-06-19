@@ -4,18 +4,19 @@ const prisma = new PrismaClient()
 
 const sendFriendRequest = async (req, res) => {
   try {
-    const senderId = req.user.id
+    const senderId = parseInt(req.user.id)
     const { receiverId } = req.body
+    const receiverIdInt = parseInt(receiverId)
 
-    if (senderId === receiverId) {
+    if (senderId === receiverIdInt) {
       return res.status(400).json({ success: false, data: {}, message: 'Você não pode se adicionar.' })
     }
 
     const existing = await prisma.friendship.findFirst({
       where: {
         OR: [
-          { senderId, receiverId },
-          { senderId: receiverId, receiverId: senderId }
+          { senderId, receiverId: receiverIdInt },
+          { senderId: receiverIdInt, receiverId: senderId }
         ]
       }
     })
@@ -25,7 +26,7 @@ const sendFriendRequest = async (req, res) => {
     }
 
     const friendship = await prisma.friendship.create({
-      data: { senderId, receiverId }
+      data: { senderId, receiverId: receiverIdInt }
     })
 
     res.status(201).json({ success: true, data: { friendship }, message: 'Convite enviado!' })
@@ -37,7 +38,7 @@ const sendFriendRequest = async (req, res) => {
 
 const respondFriendRequest = async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = parseInt(req.user.id)
     const { id } = req.params
     const { status } = req.body
 
@@ -63,12 +64,14 @@ const respondFriendRequest = async (req, res) => {
 
 const getFriends = async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = parseInt(req.user.id)
 
     const friendships = await prisma.friendship.findMany({
       where: {
-        status: 'accepted',
-        OR: [{ senderId: userId }, { receiverId: userId }]
+        AND: [
+          { status: 'accepted' },
+          { OR: [{ senderId: userId }, { receiverId: userId }] }
+        ]
       },
       include: {
         sender: { select: { id: true, username: true, email: true, avatar: true } },
@@ -89,7 +92,7 @@ const getFriends = async (req, res) => {
 
 const getPendingRequests = async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = parseInt(req.user.id)
 
     const pending = await prisma.friendship.findMany({
       where: { receiverId: userId, status: 'pending' },
@@ -107,7 +110,7 @@ const getPendingRequests = async (req, res) => {
 
 const searchUsers = async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = parseInt(req.user.id)
     const { q } = req.query
 
     if (!q || q.trim().length < 2) {
@@ -116,7 +119,7 @@ const searchUsers = async (req, res) => {
 
     const users = await prisma.user.findMany({
       where: {
-        username: { contains: q },
+        username: { contains: q, mode: 'insensitive' },
         NOT: { id: userId }
       },
       select: { id: true, username: true, email: true, avatar: true },
@@ -132,7 +135,7 @@ const searchUsers = async (req, res) => {
 
 const removeFriend = async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = parseInt(req.user.id)
     const { id } = req.params
 
     const friendship = await prisma.friendship.findUnique({
