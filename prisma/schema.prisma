@@ -27,6 +27,8 @@ model User {
   subscriptions Subscription[]
   favorites Favorite[]
   sessions  GameSession[]
+  sentFriendships     Friendship[] @relation("SentFriendships")
+  receivedFriendships Friendship[] @relation("ReceivedFriendships")
 
 }
 
@@ -145,4 +147,20 @@ model GlobalConfig {
   id        Int      @id @default(1)
   themeKey  String   @default("default")
   updatedAt DateTime @updatedAt
+}
+
+model Friendship {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  status     String   @default("pending") // pending, accepted, rejected
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender   User @relation("SentFriendships", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedFriendships", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
 }
