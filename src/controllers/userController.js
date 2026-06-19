@@ -12,6 +12,7 @@ const getProfile = async (req, res) => {
       select: {
         id:        true,
         name:      true,
+        username:  true,
         email:     true,
         avatar:    true,
         createdAt: true,
