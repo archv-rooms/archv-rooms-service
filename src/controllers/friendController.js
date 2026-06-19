@@ -71,8 +71,8 @@ const getFriends = async (req, res) => {
         OR: [{ senderId: userId }, { receiverId: userId }]
       },
       include: {
-        sender: { select: { id: true, name: true, avatar: true } },
-        receiver: { select: { id: true, name: true, avatar: true } }
+        sender: { select: { id: true, username: true, email: true, avatar: true } },
+        receiver: { select: { id: true, username: true, email: true, avatar: true } }
       }
     })
 
@@ -80,7 +80,7 @@ const getFriends = async (req, res) => {
       f.senderId === userId ? f.receiver : f.sender
     )
 
-    res.status(200).json({ success: true, data: { friends }, message: 'Amigos listados.' })
+    res.status(200).json({ success: true, data: friends, message: 'Amigos listados.' })
   } catch (error) {
     console.log('ERRO GET FRIENDS:', error)
     res.status(500).json({ success: false, data: {}, message: 'Erro interno do servidor.' })
@@ -94,11 +94,11 @@ const getPendingRequests = async (req, res) => {
     const pending = await prisma.friendship.findMany({
       where: { receiverId: userId, status: 'pending' },
       include: {
-        sender: { select: { id: true, name: true, avatar: true } }
+        sender: { select: { id: true, username: true, email: true, avatar: true } }
       }
     })
 
-    res.status(200).json({ success: true, data: { pending }, message: 'Convites pendentes.' })
+    res.status(200).json({ success: true, data: pending, message: 'Convites pendentes.' })
   } catch (error) {
     console.log('ERRO GET PENDING:', error)
     res.status(500).json({ success: false, data: {}, message: 'Erro interno do servidor.' })
@@ -110,16 +110,20 @@ const searchUsers = async (req, res) => {
     const userId = req.user.id
     const { q } = req.query
 
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ success: false, data: [], message: 'Query muito curta.' })
+    }
+
     const users = await prisma.user.findMany({
       where: {
-        name: { contains: q },
+        username: { contains: q },
         NOT: { id: userId }
       },
-      select: { id: true, name: true, avatar: true },
+      select: { id: true, username: true, email: true, avatar: true },
       take: 10
     })
 
-    res.status(200).json({ success: true, data: { users }, message: 'Usuários encontrados.' })
+    res.status(200).json({ success: true, data: users, message: 'Usuários encontrados.' })
   } catch (error) {
     console.log('ERRO SEARCH USERS:', error)
     res.status(500).json({ success: false, data: {}, message: 'Erro interno do servidor.' })
