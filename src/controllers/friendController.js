@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { createNotification } from './notificationController.js'
 
 const prisma = new PrismaClient()
 
@@ -29,6 +30,21 @@ const sendFriendRequest = async (req, res) => {
       data: { senderId, receiverId: receiverIdInt }
     })
 
+    // Busca o username de quem enviou
+    const sender = await prisma.user.findUnique({
+      where: { id: senderId },
+      select: { username: true }
+    })
+
+    // Notifica quem recebeu o convite
+    await createNotification({
+      userId: receiverIdInt,
+      type: 'friend_request',
+      title: 'Novo convite de amizade',
+      body: `${sender?.username ?? 'Alguém'} quer ser seu amigo.`,
+      data: { friendshipId: friendship.id, senderId }
+    })
+
     res.status(201).json({ success: true, data: { friendship }, message: 'Convite enviado!' })
   } catch (error) {
     console.log('ERRO SEND FRIEND REQUEST:', error)
@@ -54,6 +70,22 @@ const respondFriendRequest = async (req, res) => {
       where: { id: parseInt(id) },
       data: { status }
     })
+
+    // Se aceitou, notifica quem enviou o convite
+    if (status === 'accepted') {
+      const receiver = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { username: true }
+      })
+
+      await createNotification({
+        userId: friendship.senderId,
+        type: 'friend_accepted',
+        title: 'Convite aceito!',
+        body: `${receiver?.username ?? 'Alguém'} aceitou seu convite de amizade.`,
+        data: { friendshipId: friendship.id, receiverId: userId }
+      })
+    }
 
     res.status(200).json({ success: true, data: { updated }, message: `Convite ${status}.` })
   } catch (error) {
