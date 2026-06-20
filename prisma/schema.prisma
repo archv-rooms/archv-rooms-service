@@ -30,7 +30,7 @@ model User {
   sessions  GameSession[]
   sentFriendships     Friendship[] @relation("SentFriendships")
   receivedFriendships Friendship[] @relation("ReceivedFriendships")
-
+  notifications Notification[]
 }
 
 model Plan {
@@ -71,7 +71,6 @@ model Game {
   favorites Favorite[]
   sessions  GameSession[]
 
-
   @@index([planId], map: "Game_planId_fkey")
 }
 
@@ -107,10 +106,10 @@ model Payment {
   id             Int          @id @default(autoincrement())
   userId         Int
   subscriptionId Int?
-  mpPaymentId    String       @unique  // ID do pagamento no Mercado Pago
+  mpPaymentId    String       @unique
   amount         Float
-  status         String       // approved, pending, cancelled, refunded
-  method         String?      // pix, credit_card, etc
+  status         String
+  method         String?
   description    String?
   createdAt      DateTime     @default(now())
   user           User         @relation(fields: [userId], references: [id])
@@ -136,7 +135,7 @@ model GameSession {
   gameId    Int
   startedAt DateTime @default(now())
   endedAt   DateTime?
-  duration  Int?     // duração em segundos
+  duration  Int?
   user      User     @relation(fields: [userId], references: [id])
   game      Game     @relation(fields: [gameId], references: [id])
 
@@ -154,7 +153,7 @@ model Friendship {
   id         Int      @id @default(autoincrement())
   senderId   Int
   receiverId Int
-  status     String   @default("pending") // pending, accepted, rejected
+  status     String   @default("pending")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -164,4 +163,19 @@ model Friendship {
   @@unique([senderId, receiverId])
   @@index([senderId])
   @@index([receiverId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }

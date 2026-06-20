@@ -31,6 +31,7 @@ import gameSessionRoutes from './routes/gameSessionRoutes.js'
 import themeRoutes from './routes/themeRoutes.js'
 import friendRoutes from './routes/friendRoutes.js'
 import leaderboardRoutes from './routes/leaderboardRoutes.js'
+import notificationRoutes from './routes/notificationRoutes.js'
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
@@ -67,6 +68,7 @@ app.use('/api/sessions', gameSessionRoutes)
 app.use('/api/admin', themeRoutes)
 app.use('/api/friends',     friendRoutes)
 app.use('/api/leaderboard', leaderboardRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
