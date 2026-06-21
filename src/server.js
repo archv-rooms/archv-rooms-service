@@ -1,6 +1,8 @@
 // ─── Core ────────────────────────────────────────────────
 import 'dotenv/config'
 import express from 'express'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -32,6 +34,7 @@ import themeRoutes from './routes/themeRoutes.js'
 import friendRoutes from './routes/friendRoutes.js'
 import leaderboardRoutes from './routes/leaderboardRoutes.js'
 import notificationRoutes from './routes/notificationRoutes.js'
+import chatRoutes from './routes/chatRoutes.js'
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
@@ -69,6 +72,7 @@ app.use('/api/admin', themeRoutes)
 app.use('/api/friends',     friendRoutes)
 app.use('/api/leaderboard', leaderboardRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/chat', chatRoutes)
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -80,6 +84,30 @@ app.get('/', (req, res) => {
 })
 
 // ─── Start ────────────────────────────────────────────────
-app.listen(PORT, () => {
+const httpServer = createServer(app)
+
+const io = new Server(httpServer, {
+  cors: { origin: '*' }
+})
+
+app.set('io', io)
+
+io.on('connection', (socket) => {
+  console.log('Socket conectado:', socket.id)
+
+  socket.on('join_conversation', (conversationId) => {
+    socket.join(`conversation_${conversationId}`)
+  })
+
+  socket.on('leave_conversation', (conversationId) => {
+    socket.leave(`conversation_${conversationId}`)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('Socket desconectado:', socket.id)
+  })
+})
+
+httpServer.listen(PORT, () => {
   console.log(`Seja bem-vindo ao Archv.rooms, aproveite a estadia! | Servidor rodando na porta ${PORT}`)
 })
