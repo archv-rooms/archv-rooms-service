@@ -30,13 +30,11 @@ const sendFriendRequest = async (req, res) => {
       data: { senderId, receiverId: receiverIdInt }
     })
 
-    // Busca o username de quem enviou
     const sender = await prisma.user.findUnique({
       where: { id: senderId },
       select: { username: true }
     })
 
-    // Notifica quem recebeu o convite
     await createNotification({
       userId: receiverIdInt,
       type: 'friend_request',
@@ -71,7 +69,6 @@ const respondFriendRequest = async (req, res) => {
       data: { status }
     })
 
-    // Se aceitou, notifica quem enviou o convite
     if (status === 'accepted') {
       const receiver = await prisma.user.findUnique({
         where: { id: userId },
@@ -187,4 +184,92 @@ const removeFriend = async (req, res) => {
   }
 }
 
-export default { sendFriendRequest, respondFriendRequest, getFriends, getPendingRequests, searchUsers, removeFriend }
+const getFriendsActivity = async (req, res) => {
+  try {
+    const userId = parseInt(req.user.id)
+
+    // busca todos os amigos
+    const friendships = await prisma.friendship.findMany({
+      where: {
+        AND: [
+          { status: 'accepted' },
+          { OR: [{ senderId: userId }, { receiverId: userId }] }
+        ]
+      },
+      select: { senderId: true, receiverId: true }
+    })
+
+    const friendIds = friendships.map(f =>
+      f.senderId === userId ? f.receiverId : f.senderId
+    )
+
+    if (friendIds.length === 0) {
+      return res.status(200).json({ success: true, data: [], message: 'Nenhum amigo.' })
+    }
+
+    // busca a sessão mais recente de cada amigo
+    const activities = await Promise.all(
+      friendIds.map(async (friendId) => {
+        const user = await prisma.user.findUnique({
+          where: { id: friendId },
+          select: { id: true, username: true, avatar: true }
+        })
+
+        // sessão ativa (jogando agora)
+        const activeSession = await prisma.gameSession.findFirst({
+          where: { userId: friendId, endedAt: null },
+          include: { game: { select: { id: true, title: true, console: true, image: true } } },
+          orderBy: { startedAt: 'desc' }
+        })
+
+        if (activeSession) {
+          return {
+            user,
+            status: 'playing',
+            game: activeSession.game,
+            since: activeSession.startedAt
+          }
+        }
+
+        // última sessão encerrada
+        const lastSession = await prisma.gameSession.findFirst({
+          where: { userId: friendId, endedAt: { not: null } },
+          include: { game: { select: { id: true, title: true, console: true, image: true } } },
+          orderBy: { endedAt: 'desc' }
+        })
+
+        if (lastSession) {
+          return {
+            user,
+            status: 'last_played',
+            game: lastSession.game,
+            since: lastSession.endedAt,
+            duration: lastSession.duration
+          }
+        }
+
+        return {
+          user,
+          status: 'inactive',
+          game: null,
+          since: null
+        }
+      })
+    )
+
+    res.status(200).json({ success: true, data: activities, message: 'Atividade dos amigos.' })
+  } catch (error) {
+    console.log('ERRO GET FRIENDS ACTIVITY:', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro interno do servidor.' })
+  }
+}
+
+export default {
+  sendFriendRequest,
+  respondFriendRequest,
+  getFriends,
+  getPendingRequests,
+  searchUsers,
+  removeFriend,
+  getFriendsActivity
+}
