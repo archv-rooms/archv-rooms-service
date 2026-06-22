@@ -187,6 +187,93 @@ const getFavorites = async (req, res) => {
   }
 }
 
+// GET /user/:id/public-profile
+const getPublicProfile = async (req, res) => {
+  try {
+    const targetId = parseInt(req.params.id, 10)
+    const requesterId = req.userId
+
+    if (!targetId) {
+      return res.status(400).json({ success: false, data: {}, message: 'ID inválido.' })
+    }
+
+    // Só permite ver perfil de quem é amigo (status accepted, em qualquer direção)
+    const friendship = await prisma.friendship.findFirst({
+      where: {
+        status: 'accepted',
+        OR: [
+          { senderId: requesterId, receiverId: targetId },
+          { senderId: targetId, receiverId: requesterId }
+        ]
+      }
+    })
+
+    if (!friendship && requesterId !== targetId) {
+      return res.status(403).json({ success: false, data: {}, message: 'Você só pode ver o perfil de amigos.' })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: targetId },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        avatar: true,
+        createdAt: true
+      }
+    })
+
+    if (!user) {
+      return res.status(404).json({ success: false, data: {}, message: 'Usuário não encontrado.' })
+    }
+
+    const sessions = await prisma.gameSession.findMany({
+      where: { userId: targetId, endedAt: { not: null } },
+      orderBy: { startedAt: 'desc' },
+      include: {
+        game: { select: { id: true, title: true, console: true, image: true } }
+      }
+    })
+
+    const totalSeconds = sessions.reduce((sum, s) => sum + (s.duration || 0), 0)
+
+    const gameMap = {}
+    for (const s of sessions) {
+      if (!s.game) continue
+      const key = s.game.id
+      if (!gameMap[key]) {
+        gameMap[key] = { game: s.game, totalSeconds: 0, sessionCount: 0 }
+      }
+      gameMap[key].totalSeconds += s.duration || 0
+      gameMap[key].sessionCount += 1
+    }
+
+    const topGames = Object.values(gameMap)
+      .sort((a, b) => b.totalSeconds - a.totalSeconds)
+      .slice(0, 5)
+
+    const recentSessions = sessions.slice(0, 5)
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user,
+        stats: {
+          totalSeconds,
+          totalSessions: sessions.length,
+          uniqueGames: Object.keys(gameMap).length
+        },
+        topGames,
+        recentSessions
+      },
+      message: 'Perfil carregado.'
+    })
+  } catch (error) {
+    console.error('[getPublicProfile]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao carregar perfil.' })
+  }
+}
+
 export default {
   getProfile,
   updateName,
@@ -195,5 +282,6 @@ export default {
   completeOnboarding,
   getPaymentHistory,
   toggleFavorite,
-  getFavorites
+  getFavorites,
+  getPublicProfile
 }
