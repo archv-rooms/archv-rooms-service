@@ -219,3 +219,11 @@ model Message {
   @@index([conversationId])
   @@index([senderId])
 }
+
+model Friendship {
+  id         Int    @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  status     String
+  ...
+}
