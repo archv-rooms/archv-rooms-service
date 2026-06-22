@@ -15,4 +15,6 @@ router.get('/payments', authMiddleware, userController.getPaymentHistory)
 router.post('/favorites/:gameId', authMiddleware, userController.toggleFavorite)
 router.get('/favorites',          authMiddleware, userController.getFavorites)
 
+router.get('/:id/public-profile', authMiddleware, userController.getPublicProfile)
+
 export default router
