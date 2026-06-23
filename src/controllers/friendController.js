@@ -30,13 +30,11 @@ const sendFriendRequest = async (req, res) => {
       data: { senderId, receiverId: receiverIdInt }
     })
 
-    // Busca o username de quem enviou
     const sender = await prisma.user.findUnique({
       where: { id: senderId },
       select: { username: true }
     })
 
-    // Notifica quem recebeu o convite
     await createNotification({
       userId: receiverIdInt,
       type: 'friend_request',
@@ -71,7 +69,6 @@ const respondFriendRequest = async (req, res) => {
       data: { status }
     })
 
-    // Se aceitou, notifica quem enviou o convite
     if (status === 'accepted') {
       const receiver = await prisma.user.findUnique({
         where: { id: userId },
@@ -187,4 +184,76 @@ const removeFriend = async (req, res) => {
   }
 }
 
-export default { sendFriendRequest, respondFriendRequest, getFriends, getPendingRequests, searchUsers, removeFriend }
+const getFriendsActivity = async (req, res) => {
+  try {
+    const userId = parseInt(req.user.id)
+
+    const friendships = await prisma.friendship.findMany({
+      where: {
+        AND: [
+          { status: 'accepted' },
+          { OR: [{ senderId: userId }, { receiverId: userId }] }
+        ]
+      },
+      select: { senderId: true, receiverId: true }
+    })
+
+    const friendIds = friendships.map(f =>
+      f.senderId === userId ? f.receiverId : f.senderId
+    )
+
+    if (friendIds.length === 0) {
+      return res.status(200).json({ success: true, data: [] })
+    }
+
+    const activities = await Promise.all(
+      friendIds.map(async (friendId) => {
+        const user = await prisma.user.findUnique({
+          where: { id: friendId },
+          select: { id: true, username: true, avatar: true }
+        })
+
+        const lastSession = await prisma.gameSession.findFirst({
+          where: { userId: friendId },
+          orderBy: { startedAt: 'desc' },
+          include: {
+            game: { select: { id: true, title: true, console: true, image: true } }
+          }
+        })
+
+        if (!lastSession) {
+          return { user, status: 'inactive', game: null, since: null }
+        }
+
+        if (!lastSession.endedAt) {
+          return { user, status: 'playing', game: lastSession.game, since: lastSession.startedAt }
+        }
+
+        const daysSince = (Date.now() - new Date(lastSession.endedAt).getTime()) / (1000 * 60 * 60 * 24)
+        if (daysSince > 7) {
+          return { user, status: 'inactive', game: null, since: null }
+        }
+
+        return { user, status: 'last_played', game: lastSession.game, since: lastSession.endedAt }
+      })
+    )
+
+    const order = { playing: 0, last_played: 1, inactive: 2 }
+    activities.sort((a, b) => order[a.status] - order[b.status])
+
+    res.status(200).json({ success: true, data: activities })
+  } catch (error) {
+    console.log('ERRO GET FRIENDS ACTIVITY:', error)
+    res.status(500).json({ success: false, data: [], message: 'Erro interno do servidor.' })
+  }
+}
+
+export default {
+  sendFriendRequest,
+  respondFriendRequest,
+  getFriends,
+  getPendingRequests,
+  searchUsers,
+  removeFriend,
+  getFriendsActivity
+}
