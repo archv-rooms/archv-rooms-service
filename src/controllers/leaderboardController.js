@@ -5,30 +5,46 @@ const prisma = new PrismaClient()
 const getGlobalRanking = async (req, res) => {
   try {
     const { gameId } = req.query
-
     const where = gameId ? { gameId: parseInt(gameId) } : {}
 
-    const sessions = await prisma.gameSession.groupBy({
-      by: ['userId'],
+    // Busca sessões com startedAt e endedAt para calcular duration quando nulo
+    const sessions = await prisma.gameSession.findMany({
       where,
-      _sum: { duration: true },
-      orderBy: { _sum: { duration: 'desc' } },
-      take: 50
+      select: {
+        userId: true,
+        duration: true,
+        startedAt: true,
+        endedAt: true,
+      }
     })
 
-    const usersIds = sessions.map(s => s.userId)
+    // Agrupa por userId somando duration (ou calculando por endedAt - startedAt)
+    const totals = {}
+    for (const s of sessions) {
+      const secs = s.duration
+        ?? (s.endedAt
+          ? Math.floor((new Date(s.endedAt).getTime() - new Date(s.startedAt).getTime()) / 1000)
+          : 0)
+      totals[s.userId] = (totals[s.userId] ?? 0) + secs
+    }
+
+    const sorted = Object.entries(totals)
+      .map(([userId, total]) => ({ userId: parseInt(userId), total }))
+      .filter(e => e.total > 0)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 50)
 
     const users = await prisma.user.findMany({
-      where: { id: { in: usersIds } },
+      where: { id: { in: sorted.map(e => e.userId) } },
       select: { id: true, name: true, avatar: true }
     })
 
-    const ranking = sessions.map((s, index) => {
-      const user = users.find(u => u.id === s.userId)
+    const ranking = sorted.map((e, index) => {
+      const user = users.find(u => u.id === e.userId)
       return {
         position: index + 1,
         user,
-        totalDuration: s._sum.duration ?? 0
+        totalDuration: e.total
       }
     })
 
