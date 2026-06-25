@@ -176,7 +176,7 @@ const getPlayerProfile = async (req, res) => {
         favoriteGame,
         memberSince: user.createdAt,
         recentMatches: withDuration.slice(0, 10).map(s => ({
-          gameName: s.game.title,
+          gameId: s.gameId,
           gameName: s.game.title,
           durationSeconds: s.calc,
           playedAt: s.endedAt ?? s.startedAt
