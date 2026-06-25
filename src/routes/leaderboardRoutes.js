@@ -7,5 +7,6 @@ const router = express.Router()
 router.get('/ranking', optionalAuthMiddleware, leaderboardController.getGlobalRanking)
 router.get('/history', optionalAuthMiddleware, leaderboardController.getGameHistory)
 router.get('/games', optionalAuthMiddleware, leaderboardController.getGames)
+router.get('/profile/:username', optionalAuthMiddleware, leaderboardController.getPlayerProfile)
 
 export default router
