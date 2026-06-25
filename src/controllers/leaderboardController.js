@@ -34,7 +34,7 @@ const getGlobalRanking = async (req, res) => {
 
     const users = await prisma.user.findMany({
       where: { id: { in: sorted.map(e => e.userId) } },
-      select: { id: true, name: true, avatar: true }
+      select: { id: true, name: true, username: true, avatar: true }
     })
 
     const ranking = sorted.map((e, index) => {
@@ -61,7 +61,7 @@ const getGameHistory = async (req, res) => {
     const sessions = await prisma.gameSession.findMany({
       where,
       include: {
-        user: { select: { id: true, name: true, avatar: true } },
+        user: { select: { id: true, name: true, username: true, avatar: true } },
         game: { select: { id: true, title: true, console: true, image: true } }
       },
       orderBy: { startedAt: 'desc' },
