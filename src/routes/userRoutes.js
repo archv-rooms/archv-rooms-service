@@ -7,6 +7,7 @@ const router = express.Router()
 
 router.get('/profile',      authMiddleware,                           userController.getProfile)
 router.patch('/name',        authMiddleware,                           userController.updateName)
+router.patch('/username', authMiddleware, userController.setUsername)
 router.patch('/avatar-url',  authMiddleware,                           userController.updateAvatarUrl)
 router.patch('/avatar-file', authMiddleware, upload.single('avatar'),  userController.updateAvatarFile)
 router.patch('/onboarding', authMiddleware, userController.completeOnboarding)
