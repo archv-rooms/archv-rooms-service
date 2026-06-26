@@ -7,7 +7,7 @@ const adminController = {
 async getUsers(req, res) {
   const users = await prisma.user.findMany({
     select: {
-      id: true, name: true, email: true, role: true, createdAt: true,
+      id: true, name: true, username: true, email: true, role: true, createdAt: true,
       subscriptions: {
         where: { status: 'active' },
         include: { plan: true },
