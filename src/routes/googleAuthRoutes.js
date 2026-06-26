@@ -19,8 +19,9 @@ router.get('/google/callback',
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     )
+  const needsUsername = !user.username
 
-    res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?token=${token}&name=${encodeURIComponent(user.name)}&role=${user.role}`)
+  res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?token=${token}&name=${encodeURIComponent(user.name)}&role=${user.role}&needsUsername=${needsUsername}`)
   }
 )
 
