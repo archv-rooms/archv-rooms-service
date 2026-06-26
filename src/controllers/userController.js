@@ -274,9 +274,39 @@ const getPublicProfile = async (req, res) => {
   }
 }
 
+// PATCH /user/username
+const setUsername = async (req, res) => {
+  try {
+    const { username } = req.body
+
+    if (!username || typeof username !== 'string' || username.trim().length < 3) {
+      return res.status(400).json({ success: false, data: {}, message: 'Username inválido. Mínimo de 3 caracteres.' })
+    }
+
+    const trimmed = username.trim().toLowerCase()
+
+    const exists = await prisma.user.findUnique({ where: { username: trimmed } })
+    if (exists && exists.id !== req.userId) {
+      return res.status(400).json({ success: false, data: {}, message: 'Username já em uso.' })
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.userId },
+      data:  { username: trimmed },
+      select: { id: true, username: true }
+    })
+
+    res.status(200).json({ success: true, data: { username: user.username }, message: 'Username definido com sucesso.' })
+  } catch (error) {
+    console.error('[setUsername]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao definir username.' })
+  }
+}
+
 export default {
   getProfile,
   updateName,
+  setUsername,
   updateAvatarUrl,
   updateAvatarFile,
   completeOnboarding,
