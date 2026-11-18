@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -55,8 +55,8 @@ model Subscription {
   payments  Payment[]
   user      User     @relation(fields: [userId], references: [id])
 
-  @@index([planId], map: "Subscription_planId_fkey")
-  @@index([userId], map: "Subscription_userId_fkey")
+  @@index([planId])
+  @@index([userId])
 }
 
 model Game {
@@ -73,7 +73,7 @@ model Game {
   favorites Favorite[]
   sessions  GameSession[]
 
-  @@index([planId], map: "Game_planId_fkey")
+  @@index([planId])
 }
 
 model Category {
