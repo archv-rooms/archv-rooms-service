@@ -21,6 +21,7 @@ function serialize(room, userId) {
     fileUrl: room.game.fileUrl,
     host: room.host.username || room.host.name,
     hostId: room.hostId,
+    isHost: room.hostId === userId,
     players: room.members.length,
     maxPlayers: room.maxPlayers,
     joined: room.members.some((m) => m.userId === userId),
