@@ -7,24 +7,7 @@ const prisma = new PrismaClient()
 const getGames = async (req, res) => {
   try {
     const games = await prisma.game.findMany()
-
-    // Pega o accessLevel do usuário autenticado (se houver)
-    const userAccessLevel = req.accessLevel ?? 0
-    const userRole = req.userRole ?? 'guest'
-
-    const sanitized = games.map(game => {
-      // Admin vê tudo
-      if (userRole === 'admin') return game
-
-      // Usuário sem acesso suficiente — esconde fileUrl e fileName
-      if (game.accessLevel > userAccessLevel) {
-        return { ...game, fileUrl: null, fileName: null }
-      }
-
-      return game
-    })
-
-    res.status(200).json({ success: true, data: sanitized, message: 'Jogos carregados.' })
+    res.status(200).json({ success: true, data: games, message: 'Jogos carregados.' })
   } catch (error) {
     console.error(error)
     res.status(500).json({ success: false, data: {}, message: error.message })
@@ -39,15 +22,6 @@ const getGameById = async (req, res) => {
 
     if (!game) {
       return res.status(404).json({ success: false, data: {}, message: 'Jogo não encontrado.' })
-    }
-
-    const userAccessLevel = req.accessLevel ?? 0
-    if (req.userRole !== 'admin' && game.accessLevel > userAccessLevel) {
-      return res.status(403).json({
-        success: false,
-        data: {},
-        message: 'Seu plano não permite acesso a este jogo.'
-      })
     }
 
     res.status(200).json({ success: true, data: game, message: 'Jogo carregado.' })
