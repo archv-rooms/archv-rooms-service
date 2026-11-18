@@ -36,8 +36,6 @@ router.get('/google/callback', (req, res, next) => {
     } catch (e) {}
   }
 
-  console.log('CALLBACK state:', req.query.state, '| appUrl:', appUrl)
-
   passport.authenticate('google', { session: false }, (err, user) => {
     if (err || !user) {
       if (appUrl) return res.redirect(withParams(appUrl, 'error=google'))

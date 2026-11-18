@@ -29,6 +29,7 @@ import webhookRoutes from './routes/webhookRoutes.js'
 import donationRoutes from './routes/donationRoutes.js'
 import saveRoutes from './routes/saves.js'
 import googleAuthRoutes from './routes/googleAuthRoutes.js'
+import githubAuthRoutes from './routes/githubAuthRoutes.js'
 import gameSessionRoutes from './routes/gameSessionRoutes.js'
 import themeRoutes from './routes/themeRoutes.js'
 import friendRoutes from './routes/friendRoutes.js'
@@ -67,6 +68,7 @@ app.use('/webhook',      webhookRoutes)
 app.use('/api/donation', donationRoutes)
 app.use('/api/saves',    saveRoutes)
 app.use('/auth',         googleAuthRoutes)
+app.use('/auth',         githubAuthRoutes)
 app.use('/api/sessions', gameSessionRoutes)
 app.use('/api/admin', themeRoutes)
 app.use('/api/friends',     friendRoutes)
