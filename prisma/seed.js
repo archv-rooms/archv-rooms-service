@@ -1,6 +1,5 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
@@ -25,20 +24,6 @@ async function main() {
     }),
   ])
   console.log('✓ Planos criados')
-
-  // ── ADMIN ───────────────────────────────────────────
-  const hashedPassword = await bcrypt.hash('admin123', 10)
-  await prisma.user.upsert({
-    where: { email: 'admin@admin.com' },
-    update: {},
-    create: {
-      name: 'Admin',
-      email: 'admin@admin.com',
-      password: hashedPassword,
-      role: 'admin'
-    }
-  })
-  console.log('✓ Admin criado')
 
   // ── JOGOS ───────────────────────────────────────────
   const games = [
