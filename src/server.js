@@ -36,6 +36,7 @@ import friendRoutes from './routes/friendRoutes.js'
 import leaderboardRoutes from './routes/leaderboardRoutes.js'
 import notificationRoutes from './routes/notificationRoutes.js'
 import chatRoutes from './routes/chatRoutes.js'
+import roomRoutes from './routes/roomRoutes.js'
 
 // ─── Setup ────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url)
@@ -75,6 +76,7 @@ app.use('/api/friends',     friendRoutes)
 app.use('/api/leaderboard', leaderboardRoutes)
 app.use('/api/notifications', notificationRoutes)
 app.use('/api/chat', chatRoutes)
+app.use('/api/rooms', roomRoutes)
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/', (req, res) => {
