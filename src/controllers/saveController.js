@@ -41,3 +41,28 @@ export const upsertSave = async (req, res) => {
     res.status(500).json({ success: false, data: {}, message: error.message })
   }
 }
+
+export const deleteSave = async (req, res) => {
+  try {
+    const userId = req.userId
+    const gameId = Number(req.params.gameId)
+    const slot = Number(req.params.slot)
+
+    if (!Number.isInteger(gameId) || !Number.isInteger(slot)) {
+      return res.status(400).json({ success: false, data: {}, message: 'gameId e slot inválidos.' })
+    }
+
+    const result = await prisma.gameSave.deleteMany({
+      where: { userId, gameId, slot }
+    })
+
+    if (result.count === 0) {
+      return res.status(404).json({ success: false, data: {}, message: 'Save não encontrado.' })
+    }
+
+    res.status(200).json({ success: true, data: {}, message: 'Save apagado.' })
+  } catch (error) {
+    console.error('[deleteSave]', error)
+    res.status(500).json({ success: false, data: {}, message: error.message })
+  }
+}
