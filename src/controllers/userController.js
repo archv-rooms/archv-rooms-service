@@ -109,6 +109,21 @@ const updateAvatarFile = async (req, res) => {
   }
 }
 
+// DELETE /user/avatar
+const removeAvatar = async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.userId },
+      data:  { avatar: null }
+    })
+
+    res.status(200).json({ success: true, data: { avatar: null }, message: 'Avatar removido com sucesso.' })
+  } catch (error) {
+    console.error('[removeAvatar]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao remover avatar.' })
+  }
+}
+
 // PATCH /user/onboarding
 const completeOnboarding = async (req, res) => {
   try {
@@ -309,6 +324,7 @@ export default {
   setUsername,
   updateAvatarUrl,
   updateAvatarFile,
+  removeAvatar,
   completeOnboarding,
   getPaymentHistory,
   toggleFavorite,

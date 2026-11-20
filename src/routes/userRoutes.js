@@ -10,6 +10,7 @@ router.patch('/name',        authMiddleware,                           userContr
 router.patch('/username', authMiddleware, userController.setUsername)
 router.patch('/avatar-url',  authMiddleware,                           userController.updateAvatarUrl)
 router.patch('/avatar-file', authMiddleware, upload.single('avatar'),  userController.updateAvatarFile)
+router.delete('/avatar',     authMiddleware,                           userController.removeAvatar)
 router.patch('/onboarding', authMiddleware, userController.completeOnboarding)
 router.get('/payments', authMiddleware, userController.getPaymentHistory)
 
