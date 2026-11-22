@@ -17,7 +17,7 @@ function withParams(url, params) {
 }
 
 router.get('/google', (req, res, next) => {
-  const options = { scope: ['profile', 'email'], session: false }
+  const options = { scope: ['profile', 'email'], session: false, prompt: 'select_account' }
 
   // The mobile app sends ?app=<its link>; we carry it through Google in "state"
   if (isAllowedAppUrl(req.query.app)) {
