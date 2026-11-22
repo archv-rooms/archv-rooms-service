@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { sendPush } from '../config/pushService.js'
+
 const prisma = new PrismaClient()
 
 const roomInclude = {
@@ -102,15 +104,28 @@ async function joinRoom(req, res) {
       return res.status(404).json({ success: false, message: 'Sala não encontrada.' })
     }
 
+    let newlyJoined = false
     if (!room.members.some((m) => m.userId === userId)) {
       if (room.members.length >= room.maxPlayers) {
         return res.status(409).json({ success: false, message: 'Sala cheia.' })
       }
       await prisma.roomMember.create({ data: { roomId, userId } })
+      newlyJoined = true
     }
 
     const updated = await prisma.room.findUnique({ where: { id: roomId }, include: roomInclude })
     notifyChange(req)
+
+    // Aviso push quando a sala acabou de ficar cheia
+    if (newlyJoined && updated.members.length >= updated.maxPlayers) {
+      sendPush(
+        updated.members.map((m) => m.userId),
+        'Sala cheia!',
+        `A sala de ${updated.game.title} está completa. Hora de jogar!`,
+        { type: 'room_full', roomId: updated.id }
+      )
+    }
+
     res.json({ success: true, data: { room: serialize(updated, userId) } })
   } catch (err) {
     console.error(err)

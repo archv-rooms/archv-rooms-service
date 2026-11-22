@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken'
 
 const router = express.Router()
 
-// Only these app link formats are accepted (prevents sending the token to strangers)
-const ALLOWED_APP_PREFIXES = ['archvroomsmobile://', 'exp://']
+// Only this app link is accepted (prevents sending the token to strangers)
+const ALLOWED_APP_PREFIXES = ['archvroomsmobile://']
 
 function isAllowedAppUrl(url) {
   return typeof url === 'string' && ALLOWED_APP_PREFIXES.some((p) => url.startsWith(p))

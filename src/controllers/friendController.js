@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { createNotification } from './notificationController.js'
+import { sendPush } from '../config/pushService.js'
 
 const prisma = new PrismaClient()
 
@@ -43,6 +44,13 @@ const sendFriendRequest = async (req, res) => {
       data: { friendshipId: friendship.id, senderId }
     })
 
+    sendPush(
+      receiverIdInt,
+      'Novo convite de amizade',
+      `${sender?.username ?? 'Alguém'} quer ser seu amigo.`,
+      { type: 'friend_request', friendshipId: friendship.id }
+    )
+
     res.status(201).json({ success: true, data: { friendship }, message: 'Convite enviado!' })
   } catch (error) {
     console.log('ERRO SEND FRIEND REQUEST:', error)
@@ -82,6 +90,13 @@ const respondFriendRequest = async (req, res) => {
         body: `${receiver?.username ?? 'Alguém'} aceitou seu convite de amizade.`,
         data: { friendshipId: friendship.id, receiverId: userId }
       })
+
+      sendPush(
+        friendship.senderId,
+        'Convite aceito!',
+        `${receiver?.username ?? 'Alguém'} aceitou seu convite de amizade.`,
+        { type: 'friend_accepted', friendshipId: friendship.id }
+      )
     }
 
     res.status(200).json({ success: true, data: { updated }, message: `Convite ${status}.` })

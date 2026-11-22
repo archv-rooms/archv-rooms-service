@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { sendPush } from '../config/pushService.js'
+
 const prisma = new PrismaClient()
 
 async function getConversations(req, res) {
@@ -120,6 +122,25 @@ async function sendMessage(req, res) {
 
     const io = req.app.get('io')
     io.to(`conversation_${conversationId}`).emit('new_message', message)
+
+    // Notificação push para os outros participantes da conversa
+    const others = await prisma.conversationParticipant.findMany({
+      where: { conversationId: Number(conversationId), NOT: { userId } },
+      select: { userId: true }
+    })
+
+    if (others.length > 0) {
+      const senderName = message.sender.name || message.sender.username || 'Alguém'
+      const preview =
+        message.content.length > 100 ? message.content.slice(0, 100) + '...' : message.content
+
+      sendPush(
+        others.map((o) => o.userId),
+        senderName,
+        preview,
+        { type: 'message', conversationId: Number(conversationId) }
+      )
+    }
 
     res.json({ success: true, data: { message } })
   } catch (err) {

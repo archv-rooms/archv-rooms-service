@@ -12,6 +12,7 @@ router.patch('/avatar-url',  authMiddleware,                           userContr
 router.patch('/avatar-file', authMiddleware, upload.single('avatar'),  userController.updateAvatarFile)
 router.delete('/avatar',     authMiddleware,                           userController.removeAvatar)
 router.patch('/onboarding', authMiddleware, userController.completeOnboarding)
+router.patch('/push-token', authMiddleware, userController.savePushToken)
 router.get('/payments', authMiddleware, userController.getPaymentHistory)
 
 router.post('/favorites/:gameId', authMiddleware, userController.toggleFavorite)

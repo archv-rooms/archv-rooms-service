@@ -318,6 +318,33 @@ const setUsername = async (req, res) => {
   }
 }
 
+// PATCH /user/push-token
+const savePushToken = async (req, res) => {
+  try {
+    const { pushToken } = req.body
+
+    if (!pushToken || typeof pushToken !== 'string') {
+      return res.status(400).json({ success: false, data: {}, message: 'Token de push inválido.' })
+    }
+
+    // Um aparelho só pode pertencer a uma conta: tira o token de outros usuários
+    await prisma.user.updateMany({
+      where: { pushToken, NOT: { id: req.userId } },
+      data:  { pushToken: null }
+    })
+
+    await prisma.user.update({
+      where: { id: req.userId },
+      data:  { pushToken }
+    })
+
+    res.status(200).json({ success: true, data: {}, message: 'Token de push salvo.' })
+  } catch (error) {
+    console.error('[savePushToken]', error)
+    res.status(500).json({ success: false, data: {}, message: 'Erro ao salvar token de push.' })
+  }
+}
+
 export default {
   getProfile,
   updateName,
@@ -329,5 +356,6 @@ export default {
   getPaymentHistory,
   toggleFavorite,
   getFavorites,
-  getPublicProfile
+  getPublicProfile,
+  savePushToken
 }
