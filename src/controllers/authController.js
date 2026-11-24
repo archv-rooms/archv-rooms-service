@@ -37,6 +37,7 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
+    const sessionToken = crypto.randomBytes(32).toString('hex')
 
     const user = await prisma.user.create({
       data: {
@@ -46,9 +47,16 @@ const register = async (req, res) => {
         password: hashedPassword,
         emailVerified: true,
         emailVerifyToken: null,
-        onboardingDone: false
+        onboardingDone: false,
+        sessionToken
       }
     })
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role, sessionToken },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN }
+    )
 
     user.password = undefined
 
@@ -61,7 +69,7 @@ const register = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      data: { user },
+      data: { user, token },
       message: 'Conta criada com sucesso.'
     })
   } catch (error) {
