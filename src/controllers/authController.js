@@ -14,7 +14,7 @@ const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         data: {},
-        message: 'Nome, username, e-mail e senha são obrigatórios.'
+        message: 'Nome, nick, e-mail e senha são obrigatórios.'
       })
     }
 
@@ -32,12 +32,11 @@ const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         data: {},
-        message: 'Username já em uso.'
+        message: 'Nick já em uso.'
       })
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
-    const emailVerifyToken = crypto.randomBytes(32).toString('hex')
 
     const user = await prisma.user.create({
       data: {
@@ -45,22 +44,25 @@ const register = async (req, res) => {
         username,
         email,
         password: hashedPassword,
-        emailVerified: false,
-        emailVerifyToken,
+        emailVerified: true,
+        emailVerifyToken: null,
         onboardingDone: false
       }
     })
 
     user.password = undefined
 
-    const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${emailVerifyToken}`
-    await emailService.sendVerificationEmail(email, verifyLink)
-    await emailService.sendWelcomeEmail(email, name)
+    // E-mail de boas-vindas não pode derrubar o cadastro
+    try {
+      await emailService.sendWelcomeEmail(email, name)
+    } catch (e) {
+      console.log('ERRO WELCOME EMAIL:', e)
+    }
 
     res.status(201).json({
       success: true,
       data: { user },
-      message: 'Usuário registrado. Verifique seu e-mail para ativar a conta.'
+      message: 'Conta criada com sucesso.'
     })
   } catch (error) {
     console.log('ERRO REGISTER:', error)
@@ -74,30 +76,25 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body
+    const { username, email, password } = req.body
 
-    if (!email || !password) {
+    if ((!username && !email) || !password) {
       return res.status(400).json({
         success: false,
         data: {},
-        message: 'E-mail e senha são obrigatórios.'
+        message: 'Nick e senha são obrigatórios.'
       })
     }
 
-    const user = await prisma.user.findUnique({ where: { email } })
+    const user = username
+      ? await prisma.user.findUnique({ where: { username } })
+      : await prisma.user.findUnique({ where: { email } })
+
     if (!user) {
       return res.status(404).json({
         success: false,
         data: {},
         message: 'Usuário não encontrado.'
-      })
-    }
-
-    if (!user.emailVerified) {
-      return res.status(403).json({
-        success: false,
-        data: {},
-        message: 'E-mail não verificado. Verifique sua caixa de entrada.'
       })
     }
 
@@ -119,7 +116,7 @@ const login = async (req, res) => {
       const bloqueado = novasTentativas >= MAX_ATTEMPTS
 
       await prisma.user.update({
-        where: { email },
+        where: { id: user.id },
         data: {
           loginAttempts: novasTentativas,
           lockedUntil: bloqueado
@@ -147,11 +144,11 @@ const login = async (req, res) => {
     const sessionToken = crypto.randomBytes(32).toString('hex')
 
     await prisma.user.update({
-      where: { email },
+      where: { id: user.id },
       data: {
         loginAttempts: 0,
         lockedUntil: null,
-        sessionToken        // invalida qualquer sessão anterior automaticamente
+        sessionToken // invalida qualquer sessão anterior automaticamente
       }
     })
 
@@ -260,7 +257,7 @@ const resetPassword = async (req, res) => {
         password: hashedPassword,
         resetToken: null,
         resetTokenExpiry: null,
-        sessionToken: null    // força logout em todos os dispositivos após reset de senha
+        sessionToken: null // força logout em todos os dispositivos após reset de senha
       }
     })
 

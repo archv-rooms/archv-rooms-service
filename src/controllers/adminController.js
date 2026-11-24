@@ -4,23 +4,23 @@ const prisma = new PrismaClient()
 
 const adminController = {
 
-async getUsers(req, res) {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true, name: true, username: true, email: true, role: true, createdAt: true,
-      subscriptions: {
-        where: { status: 'active' },
-        include: { plan: true },
-        take: 1
+  async getUsers(req, res) {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true, name: true, username: true, email: true, role: true, createdAt: true,
+        subscriptions: {
+          where: { status: 'active' },
+          include: { plan: true },
+          take: 1
+        }
       }
-    }
-  })
-  const mapped = users.map(u => ({
-    ...u,
-    subscription: u.subscriptions?.[0] ?? null
-  }))
-  res.json({ success: true, data: mapped })
-},
+    })
+    const mapped = users.map(u => ({
+      ...u,
+      subscription: u.subscriptions?.[0] ?? null
+    }))
+    res.json({ success: true, data: mapped })
+  },
 
   async setUserRole(req, res) {
     const { role } = req.body
@@ -65,6 +65,43 @@ async getUsers(req, res) {
       data: { role: 'user' }
     })
     res.json({ success: true, data: user })
+  },
+
+  async deleteUser(req, res) {
+    try {
+      const id = Number(req.params.id)
+
+      if (id === req.userId) {
+        return res.status(400).json({ success: false, message: 'Você não pode deletar a si mesmo.' })
+      }
+
+      const user = await prisma.user.findUnique({ where: { id } })
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'Usuário não encontrado.' })
+      }
+
+      await prisma.$transaction([
+        prisma.roomMember.deleteMany({ where: { userId: id } }),
+        prisma.room.deleteMany({ where: { hostId: id } }),
+        prisma.message.deleteMany({ where: { senderId: id } }),
+        prisma.conversationParticipant.deleteMany({ where: { userId: id } }),
+        prisma.friendship.deleteMany({
+          where: { OR: [{ senderId: id }, { receiverId: id }] }
+        }),
+        prisma.notification.deleteMany({ where: { userId: id } }),
+        prisma.favorite.deleteMany({ where: { userId: id } }),
+        prisma.gameSession.deleteMany({ where: { userId: id } }),
+        prisma.gameSave.deleteMany({ where: { userId: id } }),
+        prisma.payment.deleteMany({ where: { userId: id } }),
+        prisma.subscription.deleteMany({ where: { userId: id } }),
+        prisma.user.delete({ where: { id } })
+      ])
+
+      res.json({ success: true, message: 'Usuário deletado com sucesso.' })
+    } catch (error) {
+      console.log('ERRO DELETE USER:', error)
+      res.status(500).json({ success: false, message: 'Erro ao deletar usuário.' })
+    }
   },
 
   async grantPlan(req, res) {

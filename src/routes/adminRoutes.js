@@ -11,6 +11,7 @@ router.patch('/users/:id/status',   adminMiddleware, adminController.setUserStat
 router.post('/users/:id/ban',       adminMiddleware, adminController.banUser)
 router.post('/users/:id/unban',     adminMiddleware, adminController.unbanUser)
 router.post('/users/:id/grant-plan',adminMiddleware, adminController.grantPlan)
+router.delete('/users/:id',         adminMiddleware, adminController.deleteUser)
 
 // ── PLANS ─────────────────────────────────────────────────────────
 router.get('/plans',        adminMiddleware, adminController.getPlans)
