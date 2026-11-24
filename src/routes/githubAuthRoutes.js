@@ -4,7 +4,11 @@ import jwt from 'jsonwebtoken'
 
 const router = express.Router()
 
-const ALLOWED_APP_PREFIXES = ['archvroomsmobile://']
+// Only these app links are accepted (prevents sending the token to strangers)
+const ALLOWED_APP_PREFIXES = [
+  'archvroomsmobile://',
+  'exp+archv-rooms-mobile://'
+]
 
 function isAllowedAppUrl(url) {
   return typeof url === 'string' && ALLOWED_APP_PREFIXES.some((p) => url.startsWith(p))
@@ -17,6 +21,8 @@ function withParams(url, params) {
 
 router.get('/github', (req, res, next) => {
   const options = { scope: ['user:email'], session: false }
+
+  console.log('GITHUB APP URL:', req.query.app, '| allowed:', isAllowedAppUrl(req.query.app))
 
   if (isAllowedAppUrl(req.query.app)) {
     options.state = Buffer.from(req.query.app).toString('base64url')

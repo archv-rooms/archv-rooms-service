@@ -4,8 +4,11 @@ import jwt from 'jsonwebtoken'
 
 const router = express.Router()
 
-// Only this app link is accepted (prevents sending the token to strangers)
-const ALLOWED_APP_PREFIXES = ['archvroomsmobile://']
+// Only these app links are accepted (prevents sending the token to strangers)
+const ALLOWED_APP_PREFIXES = [
+  'archvroomsmobile://',
+  'exp+archv-rooms-mobile://'
+]
 
 function isAllowedAppUrl(url) {
   return typeof url === 'string' && ALLOWED_APP_PREFIXES.some((p) => url.startsWith(p))
@@ -18,6 +21,8 @@ function withParams(url, params) {
 
 router.get('/google', (req, res, next) => {
   const options = { scope: ['profile', 'email'], session: false, prompt: 'select_account' }
+
+  console.log('GOOGLE APP URL:', req.query.app, '| allowed:', isAllowedAppUrl(req.query.app))
 
   // The mobile app sends ?app=<its link>; we carry it through Google in "state"
   if (isAllowedAppUrl(req.query.app)) {
