@@ -95,7 +95,9 @@ const login = async (req, res) => {
     }
 
     const user = username
-      ? await prisma.user.findUnique({ where: { username } })
+      ? await prisma.user.findFirst({
+          where: { username: { equals: username.trim(), mode: 'insensitive' } }
+        })
       : await prisma.user.findUnique({ where: { email } })
 
     if (!user) {
