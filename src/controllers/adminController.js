@@ -267,8 +267,27 @@ const adminController = {
   },
 
   async deleteGame(req, res) {
-    await prisma.game.delete({ where: { id: Number(req.params.id) } })
-    res.json({ success: true })
+    try {
+      const id = Number(req.params.id)
+
+      const game = await prisma.game.findUnique({ where: { id } })
+      if (!game) {
+        return res.status(404).json({ success: false, message: 'Jogo não encontrado.' })
+      }
+
+      await prisma.$transaction([
+        prisma.favorite.deleteMany({ where: { gameId: id } }),
+        prisma.gameSession.deleteMany({ where: { gameId: id } }),
+        prisma.gameSave.deleteMany({ where: { gameId: id } }),
+        prisma.gameCategory.deleteMany({ where: { gameId: id } }),
+        prisma.game.delete({ where: { id } })
+      ])
+
+      res.json({ success: true, message: 'Jogo deletado com sucesso.' })
+    } catch (error) {
+      console.log('ERRO DELETE GAME:', error)
+      res.status(500).json({ success: false, message: 'Erro ao deletar jogo.' })
+    }
   },
 
   async createPlan(req, res) {
